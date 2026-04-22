@@ -381,7 +381,7 @@
 <body>
 
 <header class="app-header">
-  <h1>FN <span>Clients</span><br><small style="font-size:11px;font-weight:400;opacity:0.65;font-family:'DM Sans',sans-serif;">Final Stage Submission</small></h1>
+  <h1>FN <span>Clients </span><br><small style="font-size:11px;font-weight:400;opacity:0.65;font-family:'DM Sans',sans-serif;">Final Stage Submission</small></h1>
   <div class="header-badge">FINAL STAGE</div>
 </header>
 
@@ -478,13 +478,34 @@ window.onload = async function() {
 
 async function loadMasterData() {
   try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getMasterData`);
-    const data = await res.json();
-    employeeData = data.employees || [];
-    projectData  = data.projects  || [];
+    // ── CORS-SAFE GET via JSONP ──
+    // Google Apps Script doesn't send CORS headers on GET, so we use a
+    // <script> tag (JSONP) which bypasses the same-origin restriction.
+    await new Promise((resolve, reject) => {
+      const callbackName = '__gasCb_' + Date.now();
+      const timeout = setTimeout(() => {
+        delete window[callbackName];
+        script.remove();
+        reject(new Error('Timeout'));
+      }, 10000);
+
+      window[callbackName] = function(data) {
+        clearTimeout(timeout);
+        delete window[callbackName];
+        script.remove();
+        employeeData = data.employees || [];
+        projectData  = data.projects  || [];
+        resolve();
+      };
+
+      const script = document.createElement('script');
+      script.src = `${APPS_SCRIPT_URL}?action=getMasterData&callback=${callbackName}`;
+      script.onerror = () => { clearTimeout(timeout); reject(new Error('Script load failed')); };
+      document.head.appendChild(script);
+    });
   } catch(e) {
-    // Fallback: empty data, user can still fill manually
     console.warn("Could not load master data:", e);
+    showToast("Could not load employee list. Check your Apps Script URL.", true);
   }
   populateEmployeeDropdown();
 }
@@ -778,13 +799,24 @@ async function submitAll() {
   }));
 
   try {
-    const res = await fetch(APPS_SCRIPT_URL, {
+    // ── CORS-SAFE POST ──
+    // Browsers block JSON POST to Apps Script from cross-origins (preflight fails).
+    // Solution: send as application/x-www-form-urlencoded with mode:'no-cors'.
+    // no-cors means we get an opaque response (can't read it), so we encode
+    // the full payload as a single 'data' field and poll for confirmation.
+    const submissionId = 'sub_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    const payload = { action: 'submitEntries', entries, submissionId };
+
+    await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'submitEntries', entries })
+      mode: 'no-cors',  // Skips preflight — response will be opaque (unreadable), that's OK
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'data=' + encodeURIComponent(JSON.stringify(payload))
     });
-    const result = await res.json();
-    if (result.success) {
+
+    // Since no-cors gives an opaque response, we poll via JSONP to confirm
+    const confirmed = await pollForConfirmation(submissionId);
+    if (confirmed) {
       document.getElementById('success-sub-text').textContent =
         `${entries.length} client${entries.length > 1 ? 's' : ''} submitted by ${salesExec}.`;
       document.getElementById('success-banner').classList.add('visible');
@@ -794,7 +826,7 @@ async function submitAll() {
       document.getElementById('submit-btn').style.display = 'none';
       window.scrollTo({top: 0, behavior: 'smooth'});
     } else {
-      throw new Error(result.error || 'Unknown error');
+      throw new Error('Submission could not be confirmed. Please try again.');
     }
   } catch(e) {
     showToast('Submission failed: ' + e.message, true);
@@ -803,6 +835,31 @@ async function submitAll() {
     label.textContent = 'Submit All Entries';
   }
 }
+
+// Poll Apps Script (via JSONP) to check if our submission was recorded
+function pollForConfirmation(submissionId, attempts = 0) {
+  return new Promise((resolve) => {
+    if (attempts > 8) { resolve(false); return; }
+
+    setTimeout(() => {
+      const callbackName = '__pollCb_' + Date.now();
+      const script = document.createElement('script');
+      const timer = setTimeout(() => {
+        delete window[callbackName]; script.remove();
+        pollForConfirmation(submissionId, attempts + 1).then(resolve);
+      }, 3000);
+
+      window[callbackName] = function(data) {
+        clearTimeout(timer); delete window[callbackName]; script.remove();
+        if (data && data.confirmed) { resolve(true); }
+        else { pollForConfirmation(submissionId, attempts + 1).then(resolve); }
+      };
+
+      script.src = `${APPS_SCRIPT_URL}?action=checkSubmission&submissionId=${submissionId}&callback=${callbackName}`;
+      script.onerror = () => { clearTimeout(timer); pollForConfirmation(submissionId, attempts + 1).then(resolve); };
+      document.head.appendChild(script);
+    }, attempts === 0 ? 1500 : 2000); // First check after 1.5s, then every 2s
+  });
 
 function resetForm() {
   document.getElementById('success-banner').classList.remove('visible');
