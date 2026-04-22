@@ -61,6 +61,24 @@
 
   .autofill-tag { font-size: 10px; color: var(--success); background: var(--success-bg); padding: 2px 7px; border-radius: 10px; font-weight: 600; margin-left: 5px; }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+  /* ── BUDGET ROW ── */
+  .budget-row { display: flex; gap: 8px; }
+  .budget-row input[type="number"] { flex: 1; min-width: 0; }
+  .budget-row select { width: 100px; flex-shrink: 0; }
+
+  /* ── STATUS colour-coded options ── */
+  select.status-hot   { background-color: #fff0ef; color: #c0271a; border-color: #f5a8a3; font-weight: 600; }
+  select.status-warm  { background-color: #fff8ed; color: #b85c00; border-color: #f5c97a; font-weight: 600; }
+  select.status-cold  { background-color: #eef4ff; color: #1a4fa0; border-color: #91b4f5; font-weight: 600; }
+  select.status-none  { background-color: var(--surface); color: var(--ink); border-color: var(--border); }
+
+  /* Pills shown in review for hot/warm/cold */
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; }
+  .pill-hot  { background: #fde8e7; color: #c0271a; }
+  .pill-warm { background: #fff0d6; color: #b85c00; }
+  .pill-cold { background: #deeaff; color: #1a4fa0; }
 
   .client-block { background: var(--card); border-radius: var(--radius); border: 1.5px solid var(--border); padding: 18px 16px 14px; margin-bottom: 12px; box-shadow: var(--shadow); animation: slideUp 0.3s ease both; }
   .client-block-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
@@ -81,7 +99,7 @@
   .review-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
   .review-card { background: var(--surface); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 10px; border: 1px solid var(--border); }
   .review-card-name { font-weight: 600; font-size: 14px; color: var(--accent2); margin-bottom: 6px; }
-  .review-card-row { font-size: 12px; color: var(--ink-muted); display: flex; gap: 6px; margin-bottom: 3px; }
+  .review-card-row { font-size: 12px; color: var(--ink-muted); display: flex; gap: 6px; margin-bottom: 3px; align-items: center; }
   .review-card-row strong { color: var(--ink-light); font-weight: 500; }
 
   #success-banner { display: none; background: var(--success-bg); border: 1.5px solid #a3d9be; border-radius: var(--radius); padding: 20px 18px; margin-bottom: 16px; text-align: center; }
@@ -103,7 +121,15 @@
 
   .info-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--accent-soft); color: var(--accent); border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 600; margin-bottom: 14px; }
 
-  @media (max-width: 360px) { .grid-2 { grid-template-columns: 1fr; } }
+  /* Phone validation live feedback */
+  input.phone-ok    { border-color: #52b788 !important; background: #f0faf4 !important; }
+  input.phone-bad   { border-color: #e86058 !important; background: #fff5f5 !important; }
+
+  @media (max-width: 400px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .budget-row { flex-direction: column; }
+    .budget-row select { width: 100%; }
+  }
 </style>
 </head>
 <body>
@@ -186,9 +212,9 @@
 
 <script>
 // ================================================================
-//  CONFIG — replace with your deployed Apps Script URL
+//  CONFIG — your deployed Apps Script URL
 // ================================================================
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzvGG3F4nYcsXbxtSGt5brYc1nNqP-87QGWY-bhsJwZlSMzrdrZTcsWMf0A71UFsfgNoQ/exec";
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzvGG3F4nYcsXbxtSGt5brYc1nNqP-87QGWY-bhsJwZlSMzrdrZTcsWMf0A71UFsfgNoQ/exec";
 
 // ================================================================
 //  STATE
@@ -206,23 +232,20 @@ window.onload = function() {
 
 // ================================================================
 //  LOAD MASTER DATA via JSONP
-//  (fetch() blocked by CORS; <script> tag bypasses it)
 // ================================================================
 function loadMasterData() {
   var sel = document.getElementById('salesExecName');
   sel.innerHTML = '<option value="">⏳ Loading employees...</option>';
 
-  var cbName = '__gasCb_' + Date.now();
+  var cbName   = '__gasCb_' + Date.now();
   var scriptEl = document.createElement('script');
 
-  // Timeout after 12 seconds
   var timer = setTimeout(function() {
     cleanup();
     sel.innerHTML = '<option value="">❌ Load failed — refresh page</option>';
     showToast('Timed out loading employees. Check your internet.', true);
   }, 12000);
 
-  // This function is called by the JSONP response
   window[cbName] = function(data) {
     cleanup();
     employeeData = (data && data.employees) ? data.employees : [];
@@ -252,9 +275,7 @@ function populateEmployeeDropdown() {
     sel.innerHTML = '<option value="">⚠️ No employees found in sheet</option>';
     return;
   }
-  var sorted = employeeData.slice().sort(function(a, b) {
-    return a.name.localeCompare(b.name);
-  });
+  var sorted = employeeData.slice().sort(function(a, b) { return a.name.localeCompare(b.name); });
   sel.innerHTML = '<option value="">— Select your name —</option>';
   sorted.forEach(function(emp) {
     var opt = document.createElement('option');
@@ -288,7 +309,7 @@ function autoFillFromEmployee(name) {
 }
 
 // ================================================================
-//  ADD CLIENT BLOCK
+//  ADD CLIENT BLOCK  (all 5 changes applied here)
 // ================================================================
 function addClientBlock() {
   clientCount++;
@@ -303,24 +324,30 @@ function addClientBlock() {
   var div = document.createElement('div');
   div.className = 'client-block';
   div.id = 'client-' + id;
+
   div.innerHTML =
+    // ── Header ──
     '<div class="client-block-header">' +
       '<div class="client-num"><div class="client-num-badge">' + id + '</div>Client #' + id + '</div>' +
       (id > 1 ? '<button class="btn-remove" onclick="removeClient(' + id + ')">✕ Remove</button>' : '') +
     '</div>' +
 
+    // ── Customer Name ──
     '<div class="field">' +
       '<label>Customer Name <span class="req">*</span></label>' +
       '<input type="text" id="c' + id + '-customerName" placeholder="Full name of client" oninput="updateReview()">' +
       '<div class="field-error" id="err-c' + id + '-customerName">Required</div>' +
     '</div>' +
 
+    // ── Contact Number  [FIX 3: live phone validation] ──
     '<div class="field">' +
       '<label>Contact Number <span class="req">*</span></label>' +
-      '<input type="tel" id="c' + id + '-contactNumber" placeholder="10-digit mobile number" maxlength="10" oninput="updateReview()">' +
-      '<div class="field-error" id="err-c' + id + '-contactNumber">Valid 10-digit number required</div>' +
+      '<input type="tel" id="c' + id + '-contactNumber" placeholder="10-digit mobile number" maxlength="10"' +
+        ' oninput="livePhoneValidate(this)" onpaste="setTimeout(function(){livePhoneValidate(document.getElementById(\'c' + id + '-contactNumber\'))},0)">' +
+      '<div class="field-error" id="err-c' + id + '-contactNumber">Must be exactly 10 digits</div>' +
     '</div>' +
 
+    // ── Property Type + Configuration [FIX 5: config now required] ──
     '<div class="grid-2">' +
       '<div class="field">' +
         '<label>Property Type <span class="req">*</span></label>' +
@@ -331,21 +358,33 @@ function addClientBlock() {
         '<div class="field-error" id="err-c' + id + '-propertyType">Required</div>' +
       '</div>' +
       '<div class="field">' +
-        '<label>Configuration</label>' +
+        '<label>Configuration <span class="req">*</span></label>' +   // now required
         '<select id="c' + id + '-configuration" onchange="updateReview()">' +
           '<option value="">Select</option>' +
           '<option>1 BHK</option><option>1.5 BHK</option><option>2 BHK</option><option>2.5 BHK</option>' +
           '<option>3 BHK</option><option>3.5 BHK</option><option>4 BHK</option><option>4+ BHK</option>' +
           '<option>Studio</option><option>Office Space</option><option>Shop</option><option>Plot</option><option>N/A</option>' +
         '</select>' +
+        '<div class="field-error" id="err-c' + id + '-configuration">Required</div>' +
       '</div>' +
     '</div>' +
 
+    // ── Budget  [FIX 4: number + denom split] ──
     '<div class="field">' +
-      '<label>Budget (₹)</label>' +
-      '<input type="text" id="c' + id + '-budget" placeholder="e.g. 85 Lakh or 1.2 Cr" oninput="updateReview()">' +
+      '<label>Budget (₹) <span class="req">*</span></label>' +
+      '<div class="budget-row">' +
+        '<input type="number" id="c' + id + '-budgetNum" placeholder="e.g. 85" min="0" step="any"' +
+          ' oninput="updateReview()" onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode === 46">' +
+        '<select id="c' + id + '-budgetDenom" onchange="updateReview()">' +
+          '<option value="Lakh">Lakh</option>' +
+          '<option value="Cr">Cr</option>' +
+          '<option value="Thousand">Thousand</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="field-error" id="err-c' + id + '-budgetNum">Enter a valid number</div>' +
     '</div>' +
 
+    // ── Project Name ──
     '<div class="field">' +
       '<label>Project Name <span class="req">*</span></label>' +
       '<select id="c' + id + '-projectName" onchange="handleProjectChange(' + id + ')">' + projectOptions + '</select>' +
@@ -353,39 +392,98 @@ function addClientBlock() {
       '<div class="field-error" id="err-c' + id + '-projectName">Required</div>' +
     '</div>' +
 
+    // ── Developer Name ──
     '<div class="field">' +
       '<label>Developer / Builder Name <span class="autofill-tag">Auto</span></label>' +
       '<input type="text" id="c' + id + '-developerName" readonly placeholder="Auto-filled from project">' +
     '</div>' +
 
+    // ── Status  [FIX 2: Hot/Warm/Cold with colour] ──
     '<div class="field">' +
       '<label>Status <span class="req">*</span></label>' +
-      '<select id="c' + id + '-status" onchange="updateReview()">' +
+      '<select id="c' + id + '-status" class="status-none" onchange="applyStatusColor(this); updateReview()">' +
         '<option value="">Select</option>' +
-        '<option>Site Visit Done</option><option>Token Given</option><option>Agreement Signed</option>' +
-        '<option>Loan Processing</option><option>Registration Done</option><option>Deal Closed</option>' +
+        '<option value="Hot" style="background:#fff0ef;color:#c0271a;font-weight:700;">🔴 Hot</option>' +
+        '<option value="Warm" style="background:#fff8ed;color:#b85c00;font-weight:700;">🟠 Warm</option>' +
+        '<option value="Cold" style="background:#eef4ff;color:#1a4fa0;font-weight:700;">🔵 Cold</option>' +
+        '<option value="Site Visit Done">Site Visit Done</option>' +
+        '<option value="Token Given">Token Given</option>' +
+        '<option value="Agreement Signed">Agreement Signed</option>' +
+        '<option value="Loan Processing">Loan Processing</option>' +
+        '<option value="Registration Done">Registration Done</option>' +
+        '<option value="Deal Closed">Deal Closed</option>' +
       '</select>' +
       '<div class="field-error" id="err-c' + id + '-status">Required</div>' +
     '</div>' +
 
-    '<div style="margin:10px 0 8px;"><label style="font-size:11px;font-weight:600;color:var(--ink-muted);letter-spacing:0.5px;text-transform:uppercase;">Builder Contact Details</label></div>' +
+    // ── Builder Contact Details  [FIX 5: sourcing name, contact, visit date, remark all required] ──
+    '<div style="margin:14px 0 8px;"><label style="font-size:11px;font-weight:600;color:var(--ink-muted);letter-spacing:0.5px;text-transform:uppercase;">Builder Contact Details</label></div>' +
 
-    '<div class="field"><label>Builder Sourcing Manager Name</label><input type="text" id="c' + id + '-builderSourcingName" placeholder="Manager name" oninput="updateReview()"></div>' +
-    '<div class="field"><label>Builder Sourcing Manager Contact</label><input type="tel" id="c' + id + '-builderSourcingContact" placeholder="Contact number" oninput="updateReview()"></div>' +
-    '<div class="field"><label>Builder Closing Manager Name</label><input type="text" id="c' + id + '-builderClosingName" placeholder="Manager name" oninput="updateReview()"></div>' +
-    '<div class="field"><label>Visit Date</label><input type="date" id="c' + id + '-visitDate" onchange="updateReview()"></div>' +
-    '<div class="field"><label>Remarks</label><textarea id="c' + id + '-remark" placeholder="Any notes or remarks..." oninput="updateReview()"></textarea></div>';
+    '<div class="field">' +
+      '<label>Builder Sourcing Manager Name <span class="req">*</span></label>' +
+      '<input type="text" id="c' + id + '-builderSourcingName" placeholder="Manager name" oninput="updateReview()">' +
+      '<div class="field-error" id="err-c' + id + '-builderSourcingName">Required</div>' +
+    '</div>' +
+
+    '<div class="field">' +
+      '<label>Builder Sourcing Manager Contact <span class="req">*</span></label>' +
+      '<input type="tel" id="c' + id + '-builderSourcingContact" placeholder="10-digit number" maxlength="10"' +
+        ' oninput="livePhoneValidate(this)">' +
+      '<div class="field-error" id="err-c' + id + '-builderSourcingContact">Must be exactly 10 digits</div>' +
+    '</div>' +
+
+    '<div class="field">' +
+      '<label>Builder Closing Manager Name</label>' +
+      '<input type="text" id="c' + id + '-builderClosingName" placeholder="Manager name" oninput="updateReview()">' +
+    '</div>' +
+
+    '<div class="field">' +
+      '<label>Visit Date <span class="req">*</span></label>' +
+      '<input type="date" id="c' + id + '-visitDate" onchange="updateReview()">' +
+      '<div class="field-error" id="err-c' + id + '-visitDate">Required</div>' +
+    '</div>' +
+
+    '<div class="field">' +
+      '<label>Remarks <span class="req">*</span></label>' +
+      '<textarea id="c' + id + '-remark" placeholder="Any notes or remarks..." oninput="updateReview()"></textarea>' +
+      '<div class="field-error" id="err-c' + id + '-remark">Required</div>' +
+    '</div>';
 
   document.getElementById('clients-container').appendChild(div);
   updateReview();
 }
 
+// ── Status colour helper ──
+function applyStatusColor(sel) {
+  sel.className = sel.className.replace(/\bstatus-\w+/g, '');
+  var v = sel.value;
+  if      (v === 'Hot')  sel.classList.add('status-hot');
+  else if (v === 'Warm') sel.classList.add('status-warm');
+  else if (v === 'Cold') sel.classList.add('status-cold');
+  else                    sel.classList.add('status-none');
+}
+
+// ── Live phone validation  [FIX 3] ──
+function livePhoneValidate(input) {
+  // Strip non-digits silently
+  var cleaned = input.value.replace(/\D/g, '');
+  if (cleaned !== input.value) input.value = cleaned;
+
+  input.classList.remove('phone-ok', 'phone-bad', 'invalid');
+  if (cleaned.length === 0) return;  // blank = neutral
+  if (cleaned.length === 10) {
+    input.classList.add('phone-ok');
+  } else {
+    input.classList.add('phone-bad');
+  }
+  updateReview();
+}
+
 function handleProjectChange(id) {
-  var sel = document.getElementById('c' + id + '-projectName');
+  var sel        = document.getElementById('c' + id + '-projectName');
   var otherInput = document.getElementById('c' + id + '-projectNameOther');
   otherInput.style.display = sel.value === '__other__' ? 'block' : 'none';
 
-  // Autofill developer name
   var proj = null;
   for (var i = 0; i < projectData.length; i++) {
     if (projectData[i].projectName === sel.value) { proj = projectData[i]; break; }
@@ -402,6 +500,14 @@ function removeClient(id) {
 
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Get concatenated budget string ──
+function getBudget(id) {
+  var num   = (document.getElementById('c' + id + '-budgetNum')   || {}).value || '';
+  var denom = (document.getElementById('c' + id + '-budgetDenom') || {}).value || 'Lakh';
+  if (!num) return '';
+  return num + ' ' + denom;
 }
 
 // ================================================================
@@ -426,23 +532,25 @@ function getProjectName(id) {
   return sel.value;
 }
 
+function statusPill(status) {
+  if (status === 'Hot')  return '<span class="pill pill-hot">🔴 Hot</span>';
+  if (status === 'Warm') return '<span class="pill pill-warm">🟠 Warm</span>';
+  if (status === 'Cold') return '<span class="pill pill-cold">🔵 Cold</span>';
+  return escHtml(status);
+}
+
 function updateReview() {
   var ids = getClientIds();
-  var reviewCards = document.getElementById('review-cards');
+  var reviewCards   = document.getElementById('review-cards');
   var reviewSection = document.getElementById('review-section');
   reviewCards.innerHTML = '';
   document.getElementById('review-count').textContent = ids.length;
 
   ids.forEach(function(id) {
-    var nameEl    = document.getElementById('c' + id + '-customerName');
-    var contactEl = document.getElementById('c' + id + '-contactNumber');
-    var statusEl  = document.getElementById('c' + id + '-status');
-    var budgetEl  = document.getElementById('c' + id + '-budget');
-
-    var name    = nameEl    ? nameEl.value    : '';
-    var contact = contactEl ? contactEl.value : '';
-    var status  = statusEl  ? statusEl.value  : '';
-    var budget  = budgetEl  ? budgetEl.value  : '';
+    var name    = (document.getElementById('c' + id + '-customerName')  || {}).value || '';
+    var contact = (document.getElementById('c' + id + '-contactNumber') || {}).value || '';
+    var status  = (document.getElementById('c' + id + '-status')        || {}).value || '';
+    var budget  = getBudget(id);
     var project = getProjectName(id);
 
     var card = document.createElement('div');
@@ -451,8 +559,8 @@ function updateReview() {
       '<div class="review-card-name">' + (name ? escHtml(name) : '<em style="color:#aaa;font-weight:400">No name entered</em>') + '</div>' +
       (contact ? '<div class="review-card-row"><strong>📞</strong> ' + escHtml(contact) + '</div>' : '') +
       (project ? '<div class="review-card-row"><strong>🏗</strong> ' + escHtml(project) + '</div>' : '') +
-      (status  ? '<div class="review-card-row"><strong>📌</strong> ' + escHtml(status)  + '</div>' : '') +
-      (budget  ? '<div class="review-card-row"><strong>💰</strong> ' + escHtml(budget)  + '</div>' : '');
+      (status  ? '<div class="review-card-row"><strong>📌</strong> ' + statusPill(status) + '</div>' : '') +
+      (budget  ? '<div class="review-card-row"><strong>💰</strong> ₹' + escHtml(budget)  + '</div>' : '');
     reviewCards.appendChild(card);
   });
 
@@ -465,31 +573,45 @@ function updateReview() {
 }
 
 // ================================================================
-//  VALIDATION
+//  VALIDATION  [FIX 5: new required fields added]
 // ================================================================
 function validateAll() {
   var valid = true;
+
   var salesName = document.getElementById('salesExecName').value;
   markField('salesExecName', !!salesName);
   if (!salesName) valid = false;
 
   getClientIds().forEach(function(id) {
-    var name    = (document.getElementById('c' + id + '-customerName') || {}).value || '';
-    var contact = (document.getElementById('c' + id + '-contactNumber') || {}).value || '';
-    var ptype   = (document.getElementById('c' + id + '-propertyType') || {}).value  || '';
-    var status  = (document.getElementById('c' + id + '-status') || {}).value        || '';
-    var proj    = getProjectName(id);
+    var name        = ((document.getElementById('c' + id + '-customerName')       || {}).value || '').trim();
+    var contact     = ((document.getElementById('c' + id + '-contactNumber')      || {}).value || '').trim();
+    var ptype       = ((document.getElementById('c' + id + '-propertyType')       || {}).value || '');
+    var config      = ((document.getElementById('c' + id + '-configuration')      || {}).value || '');
+    var budgetNum   = ((document.getElementById('c' + id + '-budgetNum')          || {}).value || '').trim();
+    var status      = ((document.getElementById('c' + id + '-status')             || {}).value || '');
+    var srcName     = ((document.getElementById('c' + id + '-builderSourcingName')   || {}).value || '').trim();
+    var srcContact  = ((document.getElementById('c' + id + '-builderSourcingContact') || {}).value || '').trim();
+    var visitDate   = ((document.getElementById('c' + id + '-visitDate')          || {}).value || '');
+    var remark      = ((document.getElementById('c' + id + '-remark')             || {}).value || '').trim();
+    var proj        = getProjectName(id);
 
-    name    = name.trim();
-    contact = contact.trim();
+    var contactOk = !!contact && /^\d{10}$/.test(contact);
+    var srcContactOk = !srcContact || /^\d{10}$/.test(srcContact); // if filled, must be 10 digits
 
-    markField('c' + id + '-customerName',  !!name);
-    markField('c' + id + '-contactNumber', !!contact && /^\d{10}$/.test(contact));
-    markField('c' + id + '-propertyType',  !!ptype);
-    markField('c' + id + '-projectName',   !!proj);
-    markField('c' + id + '-status',        !!status);
+    markField('c' + id + '-customerName',            !!name);
+    markField('c' + id + '-contactNumber',           contactOk);
+    markField('c' + id + '-propertyType',            !!ptype);
+    markField('c' + id + '-configuration',           !!config);
+    markField('c' + id + '-budgetNum',               !!budgetNum && !isNaN(Number(budgetNum)));
+    markField('c' + id + '-projectName',             !!proj);
+    markField('c' + id + '-status',                  !!status);
+    markField('c' + id + '-builderSourcingName',     !!srcName);
+    markField('c' + id + '-builderSourcingContact',  !!srcContact && /^\d{10}$/.test(srcContact));
+    markField('c' + id + '-visitDate',               !!visitDate);
+    markField('c' + id + '-remark',                  !!remark);
 
-    if (!name || !contact || !/^\d{10}$/.test(contact) || !ptype || !proj || !status) {
+    if (!name || !contactOk || !ptype || !config || !budgetNum || isNaN(Number(budgetNum)) ||
+        !proj || !status || !srcName || !srcContact || !/^\d{10}$/.test(srcContact) || !visitDate || !remark) {
       valid = false;
     }
   });
@@ -501,11 +623,13 @@ function markField(id, isValid) {
   var err = document.getElementById('err-' + id);
   if (!el) return;
   if (isValid) { el.classList.remove('invalid'); } else { el.classList.add('invalid'); }
-  if (err) { if (isValid) { err.classList.remove('visible'); } else { err.classList.add('visible'); } }
+  if (err) {
+    if (isValid) { err.classList.remove('visible'); } else { err.classList.add('visible'); }
+  }
 }
 
 // ================================================================
-//  SUBMIT  — no-cors POST + JSONP polling for confirmation
+//  SUBMIT
 // ================================================================
 function submitAll() {
   if (!validateAll()) {
@@ -517,15 +641,15 @@ function submitAll() {
   var btn     = document.getElementById('submit-btn');
   var spinner = document.getElementById('spinner');
   var label   = document.getElementById('submit-label');
-  btn.disabled        = true;
+  btn.disabled          = true;
   spinner.style.display = 'block';
-  label.textContent   = 'Submitting…';
+  label.textContent     = 'Submitting…';
 
-  var salesExec   = document.getElementById('salesExecName').value;
-  var teamLeader  = document.getElementById('teamLeaderName').value;
-  var cluster     = document.getElementById('cluster').value;
-  var pnlHead     = document.getElementById('pnlHead').value;
-  var timestamp   = new Date().toISOString();
+  var salesExec  = document.getElementById('salesExecName').value;
+  var teamLeader = document.getElementById('teamLeaderName').value;
+  var cluster    = document.getElementById('cluster').value;
+  var pnlHead    = document.getElementById('pnlHead').value;
+  var timestamp  = new Date().toISOString();
 
   var entries = getClientIds().map(function(id) {
     return {
@@ -534,18 +658,18 @@ function submitAll() {
       pnlHead:      pnlHead,
       teamLeaderName:    teamLeader,
       salesExecutiveName: salesExec,
-      customerName:  (document.getElementById('c' + id + '-customerName') || {}).value  || '',
-      contactNumber: (document.getElementById('c' + id + '-contactNumber') || {}).value || '',
-      propertyType:  (document.getElementById('c' + id + '-propertyType') || {}).value  || '',
-      configuration: (document.getElementById('c' + id + '-configuration') || {}).value || '',
-      budget:        (document.getElementById('c' + id + '-budget') || {}).value         || '',
+      customerName:  ((document.getElementById('c' + id + '-customerName')  || {}).value || ''),
+      contactNumber: ((document.getElementById('c' + id + '-contactNumber') || {}).value || ''),
+      propertyType:  ((document.getElementById('c' + id + '-propertyType')  || {}).value || ''),
+      configuration: ((document.getElementById('c' + id + '-configuration') || {}).value || ''),
+      budget:        getBudget(id),
       projectName:   getProjectName(id),
-      status:        (document.getElementById('c' + id + '-status') || {}).value         || '',
-      builderSourcingManagerName:    (document.getElementById('c' + id + '-builderSourcingName') || {}).value    || '',
-      builderSourcingManagerContact: (document.getElementById('c' + id + '-builderSourcingContact') || {}).value || '',
-      builderClosingManagerName:     (document.getElementById('c' + id + '-builderClosingName') || {}).value     || '',
-      visitDate:     (document.getElementById('c' + id + '-visitDate') || {}).value      || '',
-      remark:        (document.getElementById('c' + id + '-remark') || {}).value         || '',
+      status:        ((document.getElementById('c' + id + '-status')        || {}).value || ''),
+      builderSourcingManagerName:    ((document.getElementById('c' + id + '-builderSourcingName')    || {}).value || ''),
+      builderSourcingManagerContact: ((document.getElementById('c' + id + '-builderSourcingContact') || {}).value || ''),
+      builderClosingManagerName:     ((document.getElementById('c' + id + '-builderClosingName')     || {}).value || ''),
+      visitDate:     ((document.getElementById('c' + id + '-visitDate')     || {}).value || ''),
+      remark:        ((document.getElementById('c' + id + '-remark')        || {}).value || ''),
       operationsRemark: ''
     };
   });
@@ -560,7 +684,6 @@ function submitAll() {
     body:    'data=' + encodeURIComponent(payload)
   })
   .then(function() {
-    // Response is opaque (no-cors) so we poll to confirm
     return pollForConfirmation(submissionId, 0);
   })
   .then(function(confirmed) {
@@ -579,6 +702,7 @@ function submitAll() {
   })
   .catch(function(err) {
     showToast(err.message || 'Submission failed', true);
+    // FIX 1: fully restore button state on any error/failure
     btn.disabled          = false;
     spinner.style.display = 'none';
     label.textContent     = 'Submit All Entries';
@@ -605,11 +729,8 @@ function pollForConfirmation(submissionId, attempt) {
 
       window[cbName] = function(data) {
         cleanup();
-        if (data && data.confirmed) {
-          resolve(true);
-        } else {
-          pollForConfirmation(submissionId, attempt + 1).then(resolve);
-        }
+        if (data && data.confirmed) { resolve(true); }
+        else { pollForConfirmation(submissionId, attempt + 1).then(resolve); }
       };
 
       scriptEl.onerror = function() {
@@ -630,9 +751,18 @@ function pollForConfirmation(submissionId, attempt) {
 }
 
 // ================================================================
-//  RESET
+//  RESET  [FIX 1: also fully reset button state here]
 // ================================================================
 function resetForm() {
+  // Fully reset submit button before showing form again
+  var btn     = document.getElementById('submit-btn');
+  var spinner = document.getElementById('spinner');
+  var label   = document.getElementById('submit-label');
+  btn.disabled          = false;
+  spinner.style.display = 'none';
+  label.textContent     = 'Submit All Entries';
+  btn.style.display     = 'none';
+
   document.getElementById('success-banner').classList.remove('visible');
   document.getElementById('salesperson-section').style.display = 'block';
   document.getElementById('salesExecName').value  = '';
@@ -642,7 +772,6 @@ function resetForm() {
   document.getElementById('clients-container').innerHTML = '';
   clientCount = 0;
   document.getElementById('clients-section').style.display = 'none';
-  document.getElementById('submit-btn').style.display      = 'none';
   document.getElementById('review-section').classList.remove('visible');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
