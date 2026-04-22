@@ -381,7 +381,7 @@
 <body>
 
 <header class="app-header">
-  <h1>FN <span>Clients </span><br><small style="font-size:11px;font-weight:400;opacity:0.65;font-family:'DM Sans',sans-serif;">Final Stage Submission</small></h1>
+  <h1>Sales <span>Closer</span><br><small style="font-size:11px;font-weight:400;opacity:0.65;font-family:'DM Sans',sans-serif;">Final Stage Submission</small></h1>
   <div class="header-badge">FINAL STAGE</div>
 </header>
 
@@ -477,43 +477,63 @@ window.onload = async function() {
 };
 
 async function loadMasterData() {
+  // Show loading state in dropdown
+  const sel = document.getElementById('salesExecName');
+  sel.innerHTML = '<option value="">⏳ Loading employees...</option>';
+  sel.disabled = true;
+
   try {
-    // ── CORS-SAFE GET via JSONP ──
-    // Google Apps Script doesn't send CORS headers on GET, so we use a
-    // <script> tag (JSONP) which bypasses the same-origin restriction.
     await new Promise((resolve, reject) => {
       const callbackName = '__gasCb_' + Date.now();
+
+      // Declare script FIRST so timeout/onerror closures can reference it
+      const script = document.createElement('script');
+
       const timeout = setTimeout(() => {
         delete window[callbackName];
-        script.remove();
-        reject(new Error('Timeout'));
+        if (script.parentNode) script.remove();
+        reject(new Error('Timeout — took more than 10s'));
       }, 10000);
 
       window[callbackName] = function(data) {
         clearTimeout(timeout);
         delete window[callbackName];
-        script.remove();
+        if (script.parentNode) script.remove();
         employeeData = data.employees || [];
         projectData  = data.projects  || [];
         resolve();
       };
 
-      const script = document.createElement('script');
-      script.src = `${APPS_SCRIPT_URL}?action=getMasterData&callback=${callbackName}`;
-      script.onerror = () => { clearTimeout(timeout); reject(new Error('Script load failed')); };
+      script.src = APPS_SCRIPT_URL + '?action=getMasterData&callback=' + callbackName;
+      script.onerror = function() {
+        clearTimeout(timeout);
+        delete window[callbackName];
+        if (script.parentNode) script.remove();
+        reject(new Error('Script failed to load — check your Apps Script URL'));
+      };
+
       document.head.appendChild(script);
     });
+
+    console.log('✅ Loaded', employeeData.length, 'employees,', projectData.length, 'projects');
   } catch(e) {
-    console.warn("Could not load master data:", e);
-    showToast("Could not load employee list. Check your Apps Script URL.", true);
+    console.error('loadMasterData failed:', e.message);
+    showToast('Could not load employee list: ' + e.message, true);
   }
+
+  sel.disabled = false;
   populateEmployeeDropdown();
 }
 
 function populateEmployeeDropdown() {
   const sel = document.getElementById('salesExecName');
+  if (employeeData.length === 0) {
+    sel.innerHTML = '<option value="">⚠️ No employees found — check sheet</option>';
+    return;
+  }
   sel.innerHTML = '<option value="">— Select your name —</option>';
-  employeeData.forEach(emp => {
+  // Sort alphabetically for easy finding on mobile
+  [...employeeData].sort((a,b) => a.name.localeCompare(b.name)).forEach(emp => {
     const opt = document.createElement('option');
     opt.value = emp.name;
     opt.textContent = emp.name;
