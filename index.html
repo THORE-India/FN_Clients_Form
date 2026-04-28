@@ -159,17 +159,13 @@
       Select your name — other fields auto-fill
     </div>
     <div class="field">
-      <label>Sales Executive Name <span class="req">*</span></label>
-      <select id="salesExecName" onchange="autoFillFromEmployee(this.value)">
-        <option value="">⏳ Loading...</option>
-      </select>
-      <div class="field-error" id="err-salesExecName">Please select your name</div>
+      <label>Team Leader Name <span class="req">*</span></label>
+        <select id="teamLeaderSelect" onchange="autoFillFromTL(this.value)">
+          <option value="">⏳ Loading...</option>
+        </select>
+        <div class="field-error" id="err-teamLeaderSelect">Please select TL Name</div>
     </div>
     <div class="grid-2">
-      <div class="field">
-        <label>Team Leader <span class="autofill-tag">Auto</span></label>
-        <input type="text" id="teamLeaderName" readonly placeholder="Auto-filled">
-      </div>
       <div class="field">
         <label>Cluster <span class="autofill-tag">Auto</span></label>
         <input type="text" id="cluster" readonly placeholder="Auto-filled">
@@ -234,7 +230,7 @@ window.onload = function() {
 //  LOAD MASTER DATA via JSONP
 // ================================================================
 function loadMasterData() {
-  var sel = document.getElementById('salesExecName');
+  var sel = document.getElementById('teamLeaderSelect');
   sel.innerHTML = '<option value="">⏳ Loading employees...</option>';
 
   var cbName   = '__gasCb_' + Date.now();
@@ -250,7 +246,7 @@ function loadMasterData() {
     cleanup();
     employeeData = (data && data.employees) ? data.employees : [];
     projectData  = (data && data.projects)  ? data.projects  : [];
-    populateEmployeeDropdown();
+    populateTLDropdown();
   };
 
   scriptEl.onerror = function() {
@@ -270,7 +266,7 @@ function loadMasterData() {
 }
 
 function populateEmployeeDropdown() {
-  var sel = document.getElementById('salesExecName');
+  var sel = document.getElementById('teamLeaderSelect');
   if (!employeeData.length) {
     sel.innerHTML = '<option value="">⚠️ No employees found in sheet</option>';
     return;
@@ -281,6 +277,21 @@ function populateEmployeeDropdown() {
     var opt = document.createElement('option');
     opt.value = emp.name;
     opt.textContent = emp.name;
+    sel.appendChild(opt);
+  });
+}
+
+function populateTLDropdown() {
+  var sel = document.getElementById('teamLeaderSelect');
+
+  var tls = [...new Set(employeeData.map(e => e.teamLead))].sort();
+
+  sel.innerHTML = '<option value="">— Select TL —</option>';
+
+  tls.forEach(function(tl) {
+    var opt = document.createElement('option');
+    opt.value = tl;
+    opt.textContent = tl;
     sel.appendChild(opt);
   });
 }
@@ -308,6 +319,28 @@ function autoFillFromEmployee(name) {
   updateReview();
 }
 
+function autoFillFromTL(tlName) {
+  var emp = employeeData.find(e => e.teamLead === tlName);
+
+  document.getElementById('cluster').value = emp ? emp.cluster : '';
+  document.getElementById('pnlHead').value = emp ? emp.pnlHead : '';
+  // Reset clients when TL changes
+    document.getElementById('clients-container').innerHTML = '';
+    clientCount = 0;
+  
+  if (tlName) {
+    document.getElementById('clients-section').style.display = 'block';
+  
+    // Always create fresh first block
+    addClientBlock();
+  
+    document.getElementById('submit-btn').style.display = 'flex';
+  }
+  
+
+  updateReview();
+}
+
 // ================================================================
 //  ADD CLIENT BLOCK  (all 5 changes applied here)
 // ================================================================
@@ -324,6 +357,13 @@ function addClientBlock() {
   var div = document.createElement('div');
   div.className = 'client-block';
   div.id = 'client-' + id;
+
+  var salesExecOptions = '<option value="">Select Sales Executive</option>';
+    employeeData
+      .filter(e => e.teamLead === document.getElementById('teamLeaderSelect').value)
+      .forEach(function(emp) {
+        salesExecOptions += '<option value="' + emp.name + '">' + emp.name + '</option>';
+      });
 
   div.innerHTML =
     // ── Header ──
@@ -345,6 +385,13 @@ function addClientBlock() {
       '<input type="tel" id="c' + id + '-contactNumber" placeholder="10-digit mobile number" maxlength="10"' +
         ' oninput="livePhoneValidate(this)" onpaste="setTimeout(function(){livePhoneValidate(document.getElementById(\'c' + id + '-contactNumber\'))},0)">' +
       '<div class="field-error" id="err-c' + id + '-contactNumber">Must be exactly 10 digits</div>' +
+    '</div>' +
+
+    // Sales Executive dropdown filtered by TL
+  '<div class="field">' +
+      '<label>Sales Executive <span class="req">*</span></label>' +
+      '<select id="c' + id + '-salesExec">' + salesExecOptions + '</select>' +
+      '<div class="field-error" id="err-c' + id + '-salesExec">Required</div>' +
     '</div>' +
 
     // ── Property Type + Configuration [FIX 5: config now required] ──
@@ -558,8 +605,8 @@ function updateReview() {
     reviewCards.appendChild(card);
   });
 
-  var hasSales = document.getElementById('salesExecName').value;
-  if (ids.length > 0 && hasSales) {
+  var hasTL = document.getElementById('teamLeaderSelect').value;
+if (ids.length > 0 && hasTL) {
     reviewSection.classList.add('visible');
   } else {
     reviewSection.classList.remove('visible');
@@ -572,9 +619,9 @@ function updateReview() {
 function validateAll() {
   var valid = true;
 
-  var salesName = document.getElementById('salesExecName').value;
-  markField('salesExecName', !!salesName);
-  if (!salesName) valid = false;
+  var tlName = document.getElementById('teamLeaderSelect').value;
+  markField('teamLeaderSelect', !!tlName);
+  if (!tlName) valid = false;
 
   getClientIds().forEach(function(id) {
     var name        = ((document.getElementById('c' + id + '-customerName')       || {}).value || '').trim();
@@ -587,6 +634,10 @@ function validateAll() {
     var srcContact  = ((document.getElementById('c' + id + '-builderSourcingContact') || {}).value || '').trim();
     var visitDate   = ((document.getElementById('c' + id + '-visitDate')          || {}).value || '');
     var remark      = ((document.getElementById('c' + id + '-remark')             || {}).value || '').trim();
+    var salesExec = ((document.getElementById('c' + id + '-salesExec') || {}).value || '');
+    markField('c' + id + '-salesExec', !!salesExec);
+    
+    if (!salesExec) valid = false;
     var proj        = getProjectName(id);
 
     var contactOk = !!contact && /^\d{10}$/.test(contact);
@@ -605,7 +656,7 @@ function validateAll() {
     markField('c' + id + '-remark',                  !!remark);
 
     if (!name || !contactOk || !ptype || !config || !budgetNum || isNaN(Number(budgetNum)) ||
-        !proj || !status || !srcName || !srcContact || !/^\d{10}$/.test(srcContact) || !visitDate || !remark) {
+        !proj || !status || !srcName || !srcContact || !visitDate || !remark) {
       valid = false;
     }
   });
@@ -639,8 +690,7 @@ function submitAll() {
   spinner.style.display = 'block';
   label.textContent     = 'Submitting…';
 
-  var salesExec  = document.getElementById('salesExecName').value;
-  var teamLeader = document.getElementById('teamLeaderName').value;
+  var teamLeader = document.getElementById('teamLeaderSelect').value;
   var cluster    = document.getElementById('cluster').value;
   var pnlHead    = document.getElementById('pnlHead').value;
   var timestamp  = new Date().toISOString();
@@ -650,8 +700,8 @@ function submitAll() {
       timestamp:    timestamp,
       cluster:      cluster,
       pnlHead:      pnlHead,
-      teamLeaderName:    teamLeader,
-      salesExecutiveName: salesExec,
+      teamLeaderName: teamLeader,
+      salesExecutiveName: ((document.getElementById('c' + id + '-salesExec') || {}).value || ''),
       customerName:  ((document.getElementById('c' + id + '-customerName')  || {}).value || ''),
       contactNumber: ((document.getElementById('c' + id + '-contactNumber') || {}).value || ''),
       propertyType:  ((document.getElementById('c' + id + '-propertyType')  || {}).value || ''),
@@ -683,7 +733,7 @@ function submitAll() {
   .then(function(confirmed) {
     if (confirmed) {
       document.getElementById('success-sub-text').textContent =
-        entries.length + ' client' + (entries.length > 1 ? 's' : '') + ' submitted by ' + salesExec + '.';
+        entries.length + ' client' + (entries.length > 1 ? 's' : '') + ' submitted by TL:' + teamLeader  + '.';
       document.getElementById('success-banner').classList.add('visible');
       document.getElementById('salesperson-section').style.display = 'none';
       document.getElementById('clients-section').style.display     = 'none';
@@ -759,8 +809,7 @@ function resetForm() {
 
   document.getElementById('success-banner').classList.remove('visible');
   document.getElementById('salesperson-section').style.display = 'block';
-  document.getElementById('salesExecName').value  = '';
-  document.getElementById('teamLeaderName').value = '';
+  document.getElementById('teamLeaderSelect').value = '';
   document.getElementById('cluster').value        = '';
   document.getElementById('pnlHead').value        = '';
   document.getElementById('clients-container').innerHTML = '';
