@@ -449,9 +449,18 @@ function loadMasterData() {
   sel.innerHTML = '<option value="">⏳ Loading…</option>';
 
   jsonpFetch({ action: 'getMasterData' }, data => {
-    if (!data.ok) { sel.innerHTML = '<option value="">❌ Load failed — refresh</option>'; return; }
-    empData  = data.employees  || [];
-    projData = data.projects   || [];
+
+    console.log("API RESPONSE:", data);
+
+    // FIXED HERE
+    if (!data.success) {
+      sel.innerHTML = '<option value="">❌ Load failed — refresh</option>';
+      return;
+    }
+
+    empData  = data.employees || [];
+    projData = data.projects || [];
+
     populateTLDropdown();
 
     // Apply prefill AFTER data loads
@@ -459,7 +468,13 @@ function loadMasterData() {
       sel.value = prefillData.teamLead;
       onTLChange(prefillData.teamLead, true);
     }
-  }, () => { sel.innerHTML = '<option value="">❌ Network error</option>'; });
+
+  }, err => {
+
+    console.error("LOAD ERROR:", err);
+
+    sel.innerHTML = '<option value="">❌ Network error</option>';
+  });
 }
 
 function populateTLDropdown() {
