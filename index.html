@@ -3,839 +3,904 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-8FMTXHE2YG"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-8FMTXHE2YG');
-</script>
-<title>FN Clients Form</title>
+<title>THORE — FN Clients Form</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+
 <style>
   :root {
-    --ink: #0d0d0f;
-    --ink-light: #3a3a42;
-    --ink-muted: #8a8a96;
-    --surface: #f5f4f0;
-    --card: #ffffff;
-    --accent: #e85d2f;
-    --accent-soft: #fdf0eb;
-    --accent2: #1a3a5c;
-    --border: #e2e1dc;
-    --success: #1e7c47;
-    --success-bg: #edf7f2;
-    --radius: 14px;
-    --radius-sm: 8px;
-    --shadow: 0 2px 16px rgba(13,13,15,0.07);
-    --shadow-lg: 0 8px 40px rgba(13,13,15,0.13);
-    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --bg:         #0e0f14;
+    --surface:    #16181f;
+    --surface2:   #1d1f28;
+    --surface3:   #252834;
+    --border:     rgba(255,255,255,0.07);
+    --border-mid: rgba(255,255,255,0.13);
+    --gold:       #c9a84c;
+    --gold-light: #f0d080;
+    --gold-dim:   rgba(201,168,76,0.15);
+    --red:        #e05c5c;
+    --green:      #52c47e;
+    --text:       #f0ede6;
+    --text-muted: #7a7a8e;
+    --text-dim:   #a0a0b4;
+    --radius:     14px;
+    --radius-sm:  8px;
+    --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
   }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--ink); min-height: 100vh; padding-bottom: 60px; }
 
-  .app-header { background: var(--ink); color: white; padding: 20px 20px 18px; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; }
-  .app-header h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.3px; line-height: 1.2; }
-  .app-header h1 span { color: var(--accent); }
-  .header-badge { background: var(--accent); color: white; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.3px; white-space: nowrap; }
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
 
-  .container { max-width: 600px; margin: 0 auto; padding: 20px 16px; }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.013) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.013) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
 
-  .section-card { background: var(--card); border-radius: var(--radius); padding: 22px 18px 18px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); animation: slideUp 0.4s ease both; }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  /* ── Header ─────────────────────────────────────────────────── */
+  .app-header {
+    background: rgba(14,15,20,0.92);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+    padding: 0.9rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .app-header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.06em;
+  }
+  .app-header h1 small { font-family: 'Outfit', sans-serif; font-size: 0.65rem; font-weight: 400; color: var(--text-muted); display: block; letter-spacing: 0.05em; text-transform: uppercase; }
+  .header-badge {
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--gold);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+  }
 
-  .section-label { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
-  .section-label::after { content: ''; flex: 1; height: 1px; border-top: 1px solid var(--border); }
+  /* ── Prefill Banner ──────────────────────────────────────────── */
+  .prefill-banner {
+    display: none;
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-left: 3px solid var(--gold);
+    color: var(--gold);
+    padding: 10px 16px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin: 16px 20px;
+    border-radius: var(--radius-sm);
+  }
+  .prefill-banner.show { display: block; }
 
+  /* ── Container ───────────────────────────────────────────────── */
+  .container { max-width: 640px; margin: 0 auto; padding: 20px 16px; position: relative; z-index: 1; }
+
+  /* ── Section Card ────────────────────────────────────────────── */
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius);
+    padding: 20px 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    animation: slideUp 0.35s ease both;
+  }
+  @keyframes slideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+  .section-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border-mid); }
+
+  /* ── Fields ──────────────────────────────────────────────────── */
   .field { margin-bottom: 14px; }
-  label { display: block; font-size: 12px; font-weight: 500; color: var(--ink-light); margin-bottom: 5px; }
-  label .req { color: var(--accent); margin-left: 2px; }
+  .field label { display: block; font-size: 0.7rem; font-weight: 600; color: var(--text-muted); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 6px; }
+  label .req { color: var(--gold); margin-left: 2px; }
 
-  input[type="text"], input[type="tel"], input[type="date"], input[type="number"], select, textarea {
-    width: 100%; padding: 11px 13px; background: var(--surface); border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--ink);
-    outline: none; transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+  input[type="text"], input[type="tel"], input[type="date"], input[type="number"],
+  select, textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    background: var(--surface2);
+    border: 1.5px solid var(--border-mid);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.92rem;
+    outline: none;
+    transition: var(--transition);
     -webkit-appearance: none; appearance: none;
   }
-  input:focus, select:focus, textarea:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(232,93,47,0.10); }
-  input[readonly] { background: #f0efe9; color: var(--ink-muted); border-color: transparent; cursor: default; }
-  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a8a96' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--gold);
+    background: var(--surface3);
+    box-shadow: 0 0 0 3px var(--gold-dim);
+  }
+  input::placeholder, textarea::placeholder { color: var(--text-muted); font-size: 0.85rem; }
+  input[readonly] { background: var(--surface); color: var(--text-muted); cursor: default; border-color: var(--border); }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237a7a8e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; }
+  select option { background: var(--surface2); }
   textarea { resize: vertical; min-height: 80px; }
-  ::placeholder { color: #b8b7b2; font-size: 14px; }
 
-  .autofill-tag { font-size: 10px; color: var(--success); background: var(--success-bg); padding: 2px 7px; border-radius: 10px; font-weight: 600; margin-left: 5px; }
+  /* Status colour coding */
+  select.s-hot  { border-color: rgba(224,92,92,0.5);  background-color: rgba(224,92,92,0.06);  color: #e05c5c; }
+  select.s-warm { border-color: rgba(224,140,92,0.5); background-color: rgba(224,140,92,0.06); color: #e08c5c; }
+  select.s-cold { border-color: rgba(92,155,224,0.5); background-color: rgba(92,155,224,0.06); color: #5c9be0; }
+
+  /* Phone validation */
+  input.phone-ok  { border-color: rgba(82,196,126,0.6) !important; }
+  input.phone-bad { border-color: rgba(224,92,92,0.6)  !important; }
+
+  /* Grid helpers */
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  @media (max-width: 400px) { .grid-2 { grid-template-columns: 1fr; } }
 
-  /* ── BUDGET ROW ── */
   .budget-row { display: flex; gap: 8px; }
-  .budget-row input[type="number"] { flex: 1; min-width: 0; }
-  .budget-row select { width: 100px; flex-shrink: 0; }
+  .budget-row input { flex: 1; min-width: 0; }
+  .budget-row select { width: 105px; flex-shrink: 0; }
 
-  /* ── STATUS colour-coded options ── */
-  select.status-hot   { background-color: #fff0ef; color: #c0271a; border-color: #f5a8a3; font-weight: 600; }
-  select.status-warm  { background-color: #fff8ed; color: #b85c00; border-color: #f5c97a; font-weight: 600; }
-  select.status-cold  { background-color: #eef4ff; color: #1a4fa0; border-color: #91b4f5; font-weight: 600; }
-  select.status-none  { background-color: var(--surface); color: var(--ink); border-color: var(--border); }
+  /* ── Client Block ────────────────────────────────────────────── */
+  .client-block {
+    background: var(--surface);
+    border: 1.5px solid var(--border-mid);
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    animation: slideUp 0.28s ease both;
+  }
+  .client-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .client-num {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Fraunces', serif;
+    font-size: 0.9rem; font-weight: 600;
+    color: var(--gold);
+  }
+  .client-badge {
+    width: 24px; height: 24px;
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 800; color: var(--gold);
+  }
+  .remove-btn {
+    background: transparent;
+    border: 1px solid rgba(224,92,92,0.3);
+    color: var(--red);
+    border-radius: var(--radius-sm);
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    transition: var(--transition);
+  }
+  .remove-btn:hover { background: rgba(224,92,92,0.1); border-color: var(--red); }
 
-  /* Pills shown in review for hot/warm/cold */
-  .pill { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; }
-  .pill-hot  { background: #fde8e7; color: #c0271a; }
-  .pill-warm { background: #fff0d6; color: #b85c00; }
-  .pill-cold { background: #deeaff; color: #1a4fa0; }
+  .sub-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 14px 0 8px;
+  }
 
-  .client-block { background: var(--card); border-radius: var(--radius); border: 1.5px solid var(--border); padding: 18px 16px 14px; margin-bottom: 12px; box-shadow: var(--shadow); animation: slideUp 0.3s ease both; }
-  .client-block-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-  .client-num { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--accent2); display: flex; align-items: center; gap: 7px; }
-  .client-num-badge { width: 24px; height: 24px; background: var(--accent2); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
-  .btn-remove { background: none; border: 1.5px solid #f0c4b7; color: #c9431b; border-radius: 8px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all var(--transition); font-family: 'DM Sans', sans-serif; }
-  .btn-remove:hover { background: #fef3ee; border-color: var(--accent); }
+  /* ── Add Client Button ──────────────────────────────────────── */
+  .add-client-btn {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    border: 2px dashed rgba(201,168,76,0.3);
+    border-radius: var(--radius);
+    color: var(--gold);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: var(--transition);
+    margin-bottom: 20px;
+    letter-spacing: 0.04em;
+  }
+  .add-client-btn:hover { background: var(--gold-dim); border-color: var(--gold); }
 
-  .btn-add-client { width: 100%; padding: 13px; background: var(--accent-soft); border: 2px dashed #f0b09a; border-radius: var(--radius); color: var(--accent); font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all var(--transition); margin-bottom: 20px; }
-  .btn-add-client:hover { background: #fde8de; border-color: var(--accent); transform: translateY(-1px); }
+  /* ── Review Panel ────────────────────────────────────────────── */
+  #reviewSection {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  #reviewSection.show { display: block; }
+  .review-title {
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-dim);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .review-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .review-card-name { font-weight: 600; font-size: 0.88rem; color: var(--gold); margin-bottom: 4px; }
+  .review-card-row { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; }
 
-  .btn-submit { width: 100%; padding: 16px; background: var(--ink); color: white; border: none; border-radius: var(--radius); font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; cursor: pointer; transition: all var(--transition); display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 20px rgba(13,13,15,0.25); }
-  .btn-submit:hover:not(:disabled) { background: var(--accent2); transform: translateY(-2px); }
-  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-  #review-section { display: none; background: var(--card); border-radius: var(--radius); border: 1.5px solid var(--border); padding: 20px 18px; margin-bottom: 16px; box-shadow: var(--shadow); }
-  #review-section.visible { display: block; animation: slideUp 0.3s ease; }
-  .review-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-  .review-card { background: var(--surface); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 10px; border: 1px solid var(--border); }
-  .review-card-name { font-weight: 600; font-size: 14px; color: var(--accent2); margin-bottom: 6px; }
-  .review-card-row { font-size: 12px; color: var(--ink-muted); display: flex; gap: 6px; margin-bottom: 3px; align-items: center; }
-  .review-card-row strong { color: var(--ink-light); font-weight: 500; }
-
-  #success-banner { display: none; background: var(--success-bg); border: 1.5px solid #a3d9be; border-radius: var(--radius); padding: 20px 18px; margin-bottom: 16px; text-align: center; }
-  #success-banner.visible { display: block; animation: slideUp 0.4s ease; }
-  .success-icon { font-size: 36px; margin-bottom: 8px; }
-  .success-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: var(--success); margin-bottom: 6px; }
-  .success-sub { font-size: 14px; color: #3a7a57; }
-
-  .spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+  /* ── Submit ──────────────────────────────────────────────────── */
+  .submit-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #0e0f14;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    box-shadow: 0 4px 20px rgba(201,168,76,0.2);
+  }
+  .submit-btn:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .spinner { width: 18px; height: 18px; border: 2.5px solid rgba(0,0,0,0.2); border-top-color: #0e0f14; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--ink); color: white; padding: 12px 22px; border-radius: 30px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; z-index: 999; pointer-events: none; max-width: 90vw; text-align: center; }
-  #toast.show { transform: translateX(-50%) translateY(0); }
-  #toast.error { background: #c0271a; }
-
-  .field-error { font-size: 11px; color: #c0271a; margin-top: 4px; display: none; }
-  .field-error.visible { display: block; }
-  input.invalid, select.invalid, textarea.invalid { border-color: #e86058 !important; }
-
-  .info-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--accent-soft); color: var(--accent); border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 600; margin-bottom: 14px; }
-
-  /* Phone validation live feedback */
-  input.phone-ok    { border-color: #52b788 !important; background: #f0faf4 !important; }
-  input.phone-bad   { border-color: #e86058 !important; background: #fff5f5 !important; }
-
-  @media (max-width: 400px) {
-    .grid-2 { grid-template-columns: 1fr; }
-    .budget-row { flex-direction: column; }
-    .budget-row select { width: 100%; }
+  /* ── Success Banner ──────────────────────────────────────────── */
+  #successBanner {
+    display: none;
+    background: var(--surface);
+    border: 1px solid rgba(82,196,126,0.3);
+    border-radius: var(--radius);
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 14px;
   }
+  #successBanner.show { display: block; animation: slideUp 0.4s ease; }
+  .success-icon { font-size: 3rem; margin-bottom: 12px; }
+  .success-title { font-family: 'Fraunces', serif; font-size: 1.4rem; color: var(--green); margin-bottom: 8px; }
+  .success-sub { font-size: 0.88rem; color: var(--text-muted); }
+  .reset-btn {
+    margin-top: 16px;
+    padding: 10px 24px;
+    background: var(--green);
+    color: #0e0f14;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .reset-btn:hover { filter: brightness(1.1); }
+
+  /* ── Toast ───────────────────────────────────────────────────── */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface3);
+    border: 1px solid var(--border-mid);
+    color: var(--text);
+    padding: 10px 22px;
+    border-radius: 30px;
+    font-size: 0.85rem; font-weight: 500;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap; max-width: 90vw; text-align: center;
+    pointer-events: none; z-index: 999;
+  }
+  #toast.show   { transform: translateX(-50%) translateY(0); }
+  #toast.error  { background: rgba(224,92,92,0.15); color: var(--red); border-color: rgba(224,92,92,0.3); }
+  #toast.success{ background: rgba(82,196,126,0.15); color: var(--green); border-color: rgba(82,196,126,0.3); }
+
+  /* Validation */
+  input.invalid, select.invalid, textarea.invalid { border-color: var(--red) !important; }
+  .field-err { font-size: 0.72rem; color: var(--red); margin-top: 4px; display: none; }
+  .field-err.show { display: block; }
 </style>
 </head>
 <body>
 
 <header class="app-header">
-  <h1>FN <span>Clients</span><br><small style="font-size:11px;font-weight:400;opacity:0.65;font-family:'DM Sans',sans-serif;">Final Stage Submission</small></h1>
+  <h1>FN Clients <small>Final Stage Submission</small></h1>
   <div class="header-badge">Clients Form</div>
 </header>
 
+<div class="prefill-banner" id="prefillBanner">
+  ⚡ Pre-filled from Visit Dashboard — please review and complete the form before submitting.
+</div>
+
 <div class="container">
 
-  <div id="success-banner">
+  <!-- Success Banner -->
+  <div id="successBanner">
     <div class="success-icon">✅</div>
     <div class="success-title">Submitted Successfully!</div>
-    <div class="success-sub" id="success-sub-text">Your entries have been recorded.</div>
-    <br>
-    <button onclick="resetForm()" style="margin-top:8px;background:var(--success);color:white;border:none;border-radius:8px;padding:10px 22px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">Submit Another Batch</button>
+    <div class="success-sub" id="successSub">Your entries have been recorded.</div>
+    <button class="reset-btn" onclick="resetForm()">Submit Another Batch</button>
   </div>
 
-  <div class="section-card" id="salesperson-section">
-    <div class="section-label">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Sales Person Info
-    </div>
-    <div class="info-chip">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
-      Select your name — other fields auto-fill
-    </div>
+  <!-- Salesperson Section -->
+  <div class="section-card" id="spSection">
+    <div class="section-label">Sales Person Info</div>
     <div class="field">
-      <label>Team Leader Name (Select Your name) <span class="req">*</span></label>
-        <select id="teamLeaderSelect" onchange="autoFillFromTL(this.value)">
-          <option value="">⏳ Loading...</option>
-        </select>
-        <div class="field-error" id="err-teamLeaderSelect">Please select TL Name</div>
+      <label>Team Leader Name <span class="req">*</span></label>
+      <select id="tlSelect" onchange="onTLChange(this.value)">
+        <option value="">⏳ Loading…</option>
+      </select>
+      <div class="field-err" id="err-tl">Please select a Team Leader</div>
     </div>
     <div class="grid-2">
       <div class="field">
-        <label>Cluster <span class="autofill-tag">Auto</span></label>
+        <label>Cluster</label>
         <input type="text" id="cluster" readonly placeholder="Auto-filled">
       </div>
-    </div>
-    <div class="field">
-      <label>PNL Head <span class="autofill-tag">Auto</span></label>
-      <input type="text" id="pnlHead" readonly placeholder="Auto-filled">
+      <div class="field">
+        <label>PNL Head</label>
+        <input type="text" id="pnlHead" readonly placeholder="Auto-filled">
+      </div>
     </div>
   </div>
 
-  <div class="section-card" id="clients-section" style="display:none;">
-    <div class="section-label">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Client Entries
-    </div>
-    <div id="clients-container"></div>
-    <button class="btn-add-client" onclick="addClientBlock()">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  <!-- Client Entries -->
+  <div class="section-card" id="clientsSection" style="display:none;">
+    <div class="section-label">Client Entries</div>
+    <div id="clientsContainer"></div>
+    <button class="add-client-btn" onclick="addClient()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Add Another Client
     </button>
   </div>
 
-  <div id="review-section">
-    <div class="review-title">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      Review Before Submit (<span id="review-count">0</span> clients)
-    </div>
-    <div id="review-cards"></div>
+  <!-- Review Panel -->
+  <div id="reviewSection">
+    <div class="review-title">Review Before Submit (<span id="reviewCount">0</span> clients)</div>
+    <div id="reviewCards"></div>
   </div>
 
-  <button class="btn-submit" id="submit-btn" style="display:none;" onclick="submitAll()">
+  <!-- Submit Button -->
+  <button class="submit-btn" id="submitBtn" style="display:none;" onclick="submitAll()">
     <div class="spinner" id="spinner"></div>
-    <span id="submit-label">Submit All Entries</span>
+    <span id="submitLabel">Submit All Entries</span>
   </button>
 
-</div>
+</div><!-- .container -->
 
 <div id="toast"></div>
 
 <script>
-// ================================================================
-//  CONFIG — your deployed Apps Script URL
-// ================================================================
-var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzvGG3F4nYcsXbxtSGt5brYc1nNqP-87QGWY-bhsJwZlSMzrdrZTcsWMf0A71UFsfgNoQ/exec";
+// ── CONFIG ────────────────────────────────────────────────────
+// Replace with your deployed GAS Web App URL
+const GAS_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
 
-// ================================================================
-//  STATE
-// ================================================================
-var employeeData = [];
-var projectData  = [];
-var clientCount  = 0;
+// ── STATE ─────────────────────────────────────────────────────
+let empData     = [];
+let projData    = [];
+let clientCount = 0;
+let prefillData = {};
 
-// ================================================================
-//  INIT
-// ================================================================
-window.onload = function() {
+// ── BOOT ──────────────────────────────────────────────────────
+window.onload = function () {
+  // Read prefill params from URL
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('prefill') === '1') {
+    prefillData = {
+      customerName:      params.get('customerName')  || '',
+      contactNumber:     params.get('contactNumber') || '',
+      salesExec:         params.get('salesExec')     || '',
+      teamLead:          params.get('teamLead')      || '',
+      cluster:           params.get('cluster')       || '',
+      projectName:       params.get('projectName')   || '',
+      developerName:     params.get('developerName') || '',
+      visitDate:         params.get('visitDate')     || '',
+      requirement:       params.get('requirement')   || '',
+      convertedFromVisit: params.get('convertedFromVisit') || ''
+    };
+    document.getElementById('prefillBanner').classList.add('show');
+  }
   loadMasterData();
 };
 
-// ================================================================
-//  LOAD MASTER DATA via JSONP
-// ================================================================
+// ── MASTER DATA ───────────────────────────────────────────────
 function loadMasterData() {
-  var sel = document.getElementById('teamLeaderSelect');
-  sel.innerHTML = '<option value="">⏳ Loading employees...</option>';
+  const sel = document.getElementById('tlSelect');
+  sel.innerHTML = '<option value="">⏳ Loading…</option>';
 
-  var cbName   = '__gasCb_' + Date.now();
-  var scriptEl = document.createElement('script');
-
-  var timer = setTimeout(function() {
-    cleanup();
-    sel.innerHTML = '<option value="">❌ Load failed — refresh page</option>';
-    showToast('Timed out loading employees. Check your internet.', true);
-  }, 12000);
-
-  window[cbName] = function(data) {
-    cleanup();
-    employeeData = (data && data.employees) ? data.employees : [];
-    projectData  = (data && data.projects)  ? data.projects  : [];
+  jsonpFetch({ action: 'getMasterData' }, data => {
+    if (!data.ok) { sel.innerHTML = '<option value="">❌ Load failed — refresh</option>'; return; }
+    empData  = data.employees  || [];
+    projData = data.projects   || [];
     populateTLDropdown();
-  };
 
-  scriptEl.onerror = function() {
-    cleanup();
-    sel.innerHTML = '<option value="">❌ Could not load — check URL</option>';
-    showToast('Failed to load employee list. Check your Apps Script URL.', true);
-  };
-
-  function cleanup() {
-    clearTimeout(timer);
-    delete window[cbName];
-    if (scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
-  }
-
-  scriptEl.src = APPS_SCRIPT_URL + '?action=getMasterData&callback=' + cbName;
-  document.head.appendChild(scriptEl);
-}
-
-function populateEmployeeDropdown() {
-  var sel = document.getElementById('teamLeaderSelect');
-  if (!employeeData.length) {
-    sel.innerHTML = '<option value="">⚠️ No employees found in sheet</option>';
-    return;
-  }
-  var sorted = employeeData.slice().sort(function(a, b) { return a.name.localeCompare(b.name); });
-  sel.innerHTML = '<option value="">— Select your name —</option>';
-  sorted.forEach(function(emp) {
-    var opt = document.createElement('option');
-    opt.value = emp.name;
-    opt.textContent = emp.name;
-    sel.appendChild(opt);
-  });
+    // Apply prefill AFTER data loads
+    if (prefillData.teamLead) {
+      sel.value = prefillData.teamLead;
+      onTLChange(prefillData.teamLead, true);
+    }
+  }, () => { sel.innerHTML = '<option value="">❌ Network error</option>'; });
 }
 
 function populateTLDropdown() {
-  var sel = document.getElementById('teamLeaderSelect');
-
-  var tls = [...new Set(employeeData.map(e => e.teamLead))].sort();
-
-  sel.innerHTML = '<option value="">— Select TL —</option>';
-
-  tls.forEach(function(tl) {
-    var opt = document.createElement('option');
-    opt.value = tl;
-    opt.textContent = tl;
-    sel.appendChild(opt);
-  });
+  const sel = document.getElementById('tlSelect');
+  const tls = [...new Set(empData.map(e => e.teamLead))].filter(Boolean).sort();
+  sel.innerHTML = '<option value="">— Select Team Leader —</option>';
+  tls.forEach(tl => { const o = document.createElement('option'); o.value = o.textContent = tl; sel.appendChild(o); });
 }
 
-// ================================================================
-//  AUTOFILL SALES PERSON
-// ================================================================
-function autoFillFromEmployee(name) {
-  var emp = null;
-  for (var i = 0; i < employeeData.length; i++) {
-    if (employeeData[i].name === name) { emp = employeeData[i]; break; }
-  }
-  document.getElementById('teamLeaderName').value = emp ? emp.teamLead : '';
-  document.getElementById('cluster').value        = emp ? emp.cluster  : '';
-  document.getElementById('pnlHead').value        = emp ? emp.pnlHead  : '';
-
-  if (name) {
-    document.getElementById('clients-section').style.display = 'block';
-    if (clientCount === 0) addClientBlock();
-    document.getElementById('submit-btn').style.display = 'flex';
-  } else {
-    document.getElementById('clients-section').style.display = 'none';
-    document.getElementById('submit-btn').style.display = 'none';
-  }
-  updateReview();
-}
-
-function autoFillFromTL(tlName) {
-  var emp = employeeData.find(e => e.teamLead === tlName);
-
+function onTLChange(tl, isPrefill) {
+  const emp = empData.find(e => e.teamLead === tl);
   document.getElementById('cluster').value = emp ? emp.cluster : '';
-  document.getElementById('pnlHead').value = emp ? emp.pnlHead : '';
-  // Reset clients when TL changes
-    document.getElementById('clients-container').innerHTML = '';
-    clientCount = 0;
-  
-  if (tlName) {
-    document.getElementById('clients-section').style.display = 'block';
-  
-    // Always create fresh first block
-    addClientBlock();
-  
-    document.getElementById('submit-btn').style.display = 'flex';
-  }
-  
+  document.getElementById('pnlHead').value = emp ? (emp.pnlHead || '') : '';
 
-  updateReview();
-}
+  // Reset clients
+  document.getElementById('clientsContainer').innerHTML = '';
+  clientCount = 0;
 
-// ================================================================
-//  ADD CLIENT BLOCK  (all 5 changes applied here)
-// ================================================================
-function addClientBlock() {
-  clientCount++;
-  var id = clientCount;
-
-  var projectOptions = '<option value="">— Select Project —</option>';
-  projectData.forEach(function(p) {
-    projectOptions += '<option value="' + escHtml(p.projectName) + '">' + escHtml(p.projectName) + '</option>';
-  });
-  projectOptions += '<option value="__other__">Other (type below)</option>';
-
-  var div = document.createElement('div');
-  div.className = 'client-block';
-  div.id = 'client-' + id;
-
-  var salesExecOptions = '<option value="">Select Sales Executive</option>';
-    employeeData
-      .filter(e => e.teamLead === document.getElementById('teamLeaderSelect').value)
-      .forEach(function(emp) {
-        salesExecOptions += '<option value="' + emp.name + '">' + emp.name + '</option>';
-      });
-
-  div.innerHTML =
-    // ── Header ──
-    '<div class="client-block-header">' +
-      '<div class="client-num"><div class="client-num-badge">' + id + '</div>Client #' + id + '</div>' +
-      (id > 1 ? '<button class="btn-remove" onclick="removeClient(' + id + ')">✕ Remove</button>' : '') +
-    '</div>' +
-
-    // ── Customer Name ──
-    '<div class="field">' +
-      '<label>Customer Name <span class="req">*</span></label>' +
-      '<input type="text" id="c' + id + '-customerName" placeholder="Full name of client" oninput="updateReview()">' +
-      '<div class="field-error" id="err-c' + id + '-customerName">Required</div>' +
-    '</div>' +
-
-    // ── Contact Number  [FIX 3: live phone validation] ──
-    '<div class="field">' +
-      '<label>Contact Number <span class="req">*</span></label>' +
-      '<input type="tel" id="c' + id + '-contactNumber" placeholder="10-digit mobile number" maxlength="10"' +
-        ' oninput="livePhoneValidate(this)" onpaste="setTimeout(function(){livePhoneValidate(document.getElementById(\'c' + id + '-contactNumber\'))},0)">' +
-      '<div class="field-error" id="err-c' + id + '-contactNumber">Must be exactly 10 digits</div>' +
-    '</div>' +
-
-    // Sales Executive dropdown filtered by TL
-  '<div class="field">' +
-      '<label>Sales Executive <span class="req">*</span></label>' +
-      '<select id="c' + id + '-salesExec">' + salesExecOptions + '</select>' +
-      '<div class="field-error" id="err-c' + id + '-salesExec">Required</div>' +
-    '</div>' +
-
-    // ── Property Type + Configuration [FIX 5: config now required] ──
-    '<div class="grid-2">' +
-      '<div class="field">' +
-        '<label>Property Type <span class="req">*</span></label>' +
-        '<select id="c' + id + '-propertyType" onchange="updateReview()">' +
-          '<option value="">Select</option>' +
-          '<option>Residential</option><option>Commercial</option><option>Plots</option><option>Villa</option><option>Industrial</option>' +
-        '</select>' +
-        '<div class="field-error" id="err-c' + id + '-propertyType">Required</div>' +
-      '</div>' +
-      '<div class="field">' +
-        '<label>Configuration <span class="req">*</span></label>' +   // now required
-        '<select id="c' + id + '-configuration" onchange="updateReview()">' +
-          '<option value="">Select</option>' +
-          '<option>1 BHK</option><option>1.5 BHK</option><option>2 BHK</option><option>2.5 BHK</option>' +
-          '<option>3 BHK</option><option>3.5 BHK</option><option>4 BHK</option><option>4+ BHK</option>' +
-          '<option>Studio</option><option>Office Space</option><option>Shop</option><option>Plot</option><option>N/A</option>' +
-        '</select>' +
-        '<div class="field-error" id="err-c' + id + '-configuration">Required</div>' +
-      '</div>' +
-    '</div>' +
-
-    // ── Budget  [FIX 4: number + denom split] ──
-    '<div class="field">' +
-      '<label>Budget (₹) <span class="req">*</span></label>' +
-      '<div class="budget-row">' +
-        '<input type="number" id="c' + id + '-budgetNum" placeholder="e.g. 85" min="0" step="any"' +
-          ' oninput="updateReview()" onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode === 46">' +
-        '<select id="c' + id + '-budgetDenom" onchange="updateReview()">' +
-          '<option value="Lakh">Lakh</option>' +
-          '<option value="Cr">Cr</option>' +
-          '<option value="Thousand">Thousand</option>' +
-        '</select>' +
-      '</div>' +
-      '<div class="field-error" id="err-c' + id + '-budgetNum">Enter a valid number</div>' +
-    '</div>' +
-
-    // ── Project Name ──
-    '<div class="field">' +
-      '<label>Project Name <span class="req">*</span></label>' +
-      '<select id="c' + id + '-projectName" onchange="handleProjectChange(' + id + ')">' + projectOptions + '</select>' +
-      '<input type="text" id="c' + id + '-projectNameOther" placeholder="Enter project name" style="margin-top:8px;display:none;" oninput="updateReview()">' +
-      '<div class="field-error" id="err-c' + id + '-projectName">Required</div>' +
-    '</div>' +
-
-    // ── Developer Name ──
-    '<div class="field">' +
-      '<label>Developer / Builder Name <span class="autofill-tag">Auto</span></label>' +
-      '<input type="text" id="c' + id + '-developerName" readonly placeholder="Auto-filled from project">' +
-    '</div>' +
-
-    // ── Status  [FIX 2: Hot/Warm/Cold with colour] ──
-    '<div class="field">' +
-      '<label>Status <span class="req">*</span></label>' +
-      '<select id="c' + id + '-status" class="status-none" onchange="applyStatusColor(this); updateReview()">' +
-        '<option value="">Select</option>' +
-        '<option value="Hot" style="background:#fff0ef;color:#c0271a;font-weight:700;">🔴 Hot</option>' +
-        '<option value="Warm" style="background:#fff8ed;color:#b85c00;font-weight:700;">🟠 Warm</option>' +
-        '<option value="Cold" style="background:#eef4ff;color:#1a4fa0;font-weight:700;">🔵 Cold</option>' +
-      '</select>' +
-      '<div class="field-error" id="err-c' + id + '-status">Required</div>' +
-    '</div>' +
-
-    // ── Builder Contact Details  [FIX 5: sourcing name, contact, visit date, remark all required] ──
-    '<div style="margin:14px 0 8px;"><label style="font-size:11px;font-weight:600;color:var(--ink-muted);letter-spacing:0.5px;text-transform:uppercase;">Builder Contact Details</label></div>' +
-
-    '<div class="field">' +
-      '<label>Builder Sourcing Manager Name <span class="req">*</span></label>' +
-      '<input type="text" id="c' + id + '-builderSourcingName" placeholder="Manager name" oninput="updateReview()">' +
-      '<div class="field-error" id="err-c' + id + '-builderSourcingName">Required</div>' +
-    '</div>' +
-
-    '<div class="field">' +
-      '<label>Builder Sourcing Manager Contact <span class="req">*</span></label>' +
-      '<input type="tel" id="c' + id + '-builderSourcingContact" placeholder="10-digit number" maxlength="10"' +
-        ' oninput="livePhoneValidate(this)">' +
-      '<div class="field-error" id="err-c' + id + '-builderSourcingContact">Must be exactly 10 digits</div>' +
-    '</div>' +
-
-    '<div class="field">' +
-      '<label>Builder Closing Manager Name</label>' +
-      '<input type="text" id="c' + id + '-builderClosingName" placeholder="Manager name" oninput="updateReview()">' +
-    '</div>' +
-
-    '<div class="field">' +
-      '<label>Visit Date <span class="req">*</span></label>' +
-      '<input type="date" id="c' + id + '-visitDate" onchange="updateReview()">' +
-      '<div class="field-error" id="err-c' + id + '-visitDate">Required</div>' +
-    '</div>' +
-
-    '<div class="field">' +
-      '<label>Remarks <span class="req">*</span></label>' +
-      '<textarea id="c' + id + '-remark" placeholder="Any notes or remarks..." oninput="updateReview()"></textarea>' +
-      '<div class="field-error" id="err-c' + id + '-remark">Required</div>' +
-    '</div>';
-
-  document.getElementById('clients-container').appendChild(div);
-  updateReview();
-}
-
-// ── Status colour helper ──
-function applyStatusColor(sel) {
-  sel.className = sel.className.replace(/\bstatus-\w+/g, '');
-  var v = sel.value;
-  if      (v === 'Hot')  sel.classList.add('status-hot');
-  else if (v === 'Warm') sel.classList.add('status-warm');
-  else if (v === 'Cold') sel.classList.add('status-cold');
-  else                    sel.classList.add('status-none');
-}
-
-// ── Live phone validation  [FIX 3] ──
-function livePhoneValidate(input) {
-  // Strip non-digits silently
-  var cleaned = input.value.replace(/\D/g, '');
-  if (cleaned !== input.value) input.value = cleaned;
-
-  input.classList.remove('phone-ok', 'phone-bad', 'invalid');
-  if (cleaned.length === 0) return;  // blank = neutral
-  if (cleaned.length === 10) {
-    input.classList.add('phone-ok');
+  if (tl) {
+    document.getElementById('clientsSection').style.display = 'block';
+    document.getElementById('submitBtn').style.display = 'flex';
+    addClient(isPrefill ? prefillData : null);
   } else {
-    input.classList.add('phone-bad');
+    document.getElementById('clientsSection').style.display = 'none';
+    document.getElementById('submitBtn').style.display = 'none';
   }
   updateReview();
 }
 
-function handleProjectChange(id) {
-  var sel        = document.getElementById('c' + id + '-projectName');
-  var otherInput = document.getElementById('c' + id + '-projectNameOther');
-  otherInput.style.display = sel.value === '__other__' ? 'block' : 'none';
+// ── ADD CLIENT BLOCK ──────────────────────────────────────────
+function addClient(prefill) {
+  clientCount++;
+  const id = clientCount;
+  const pf = prefill || {};
 
-  var proj = null;
-  for (var i = 0; i < projectData.length; i++) {
-    if (projectData[i].projectName === sel.value) { proj = projectData[i]; break; }
-  }
-  document.getElementById('c' + id + '-developerName').value = proj ? proj.developerName : '';
+  // Project options
+  let projOpts = '<option value="">— Select Project —</option>';
+  projData.forEach(p => {
+    const sel = pf.projectName === p.projectName ? ' selected' : '';
+    projOpts += `<option value="${esc(p.projectName)}"${sel}>${esc(p.projectName)}</option>`;
+  });
+  projOpts += '<option value="__other__">Other (type below)</option>';
+
+  // SE options filtered by TL
+  const currentTL = document.getElementById('tlSelect').value;
+  let seOpts = '<option value="">Select Sales Executive</option>';
+  empData.filter(e => e.teamLead === currentTL).forEach(e => {
+    const sel = pf.salesExec === e.name ? ' selected' : '';
+    seOpts += `<option value="${esc(e.name)}"${sel}>${esc(e.name)}</option>`;
+  });
+
+  // Auto-fill developer from project map
+  const devValue = pf.projectName
+    ? (projData.find(p => p.projectName === pf.projectName) || {}).developerName || pf.developerName || ''
+    : '';
+
+  const div = document.createElement('div');
+  div.className = 'client-block';
+  div.id        = 'client-' + id;
+
+  div.innerHTML = `
+    <div class="client-head">
+      <div class="client-num"><div class="client-badge">${id}</div>Client #${id}</div>
+      ${id > 1 ? `<button class="remove-btn" onclick="removeClient(${id})">✕ Remove</button>` : ''}
+    </div>
+
+    <div class="field">
+      <label>Customer Name <span class="req">*</span></label>
+      <input type="text" id="c${id}-name" placeholder="Full name of client" value="${esc(pf.customerName || '')}" oninput="updateReview()">
+      <div class="field-err" id="err-c${id}-name">Required</div>
+    </div>
+
+    <div class="field">
+      <label>Contact Number <span class="req">*</span></label>
+      <input type="tel" id="c${id}-contact" placeholder="10-digit mobile" maxlength="10"
+        value="${esc(pf.contactNumber || '')}"
+        oninput="livePhone(this)" onpaste="setTimeout(()=>livePhone(document.getElementById('c${id}-contact')),0)">
+      <div class="field-err" id="err-c${id}-contact">Must be exactly 10 digits</div>
+    </div>
+
+    <div class="field">
+      <label>Sales Executive <span class="req">*</span></label>
+      <select id="c${id}-se">${seOpts}</select>
+      <div class="field-err" id="err-c${id}-se">Required</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Property Type <span class="req">*</span></label>
+        <select id="c${id}-ptype" onchange="updateReview()">
+          <option value="">Select</option>
+          <option>Residential</option><option>Commercial</option>
+          <option>Plots</option><option>Villa</option><option>Industrial</option>
+        </select>
+        <div class="field-err" id="err-c${id}-ptype">Required</div>
+      </div>
+      <div class="field">
+        <label>Configuration <span class="req">*</span></label>
+        <select id="c${id}-config" onchange="updateReview()">
+          <option value="">Select</option>
+          <option>1 BHK</option><option>1.5 BHK</option><option>2 BHK</option><option>2.5 BHK</option>
+          <option>3 BHK</option><option>3.5 BHK</option><option>4 BHK</option><option>4+ BHK</option>
+          <option>Studio</option><option>Office Space</option><option>Shop</option><option>Plot</option><option>N/A</option>
+        </select>
+        <div class="field-err" id="err-c${id}-config">Required</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Budget (₹) <span class="req">*</span></label>
+      <div class="budget-row">
+        <input type="number" id="c${id}-budgetNum" placeholder="e.g. 85" min="0" step="any" oninput="updateReview()">
+        <select id="c${id}-budgetDenom">
+          <option value="Lakh">Lakh</option>
+          <option value="Cr">Cr</option>
+          <option value="Thousand">Thousand</option>
+        </select>
+      </div>
+      <div class="field-err" id="err-c${id}-budgetNum">Enter a valid number</div>
+    </div>
+
+    <div class="field">
+      <label>Project Name <span class="req">*</span></label>
+      <select id="c${id}-proj" onchange="onProjectChange(${id})">${projOpts}</select>
+      <input type="text" id="c${id}-projOther" placeholder="Enter project name"
+             style="margin-top:8px;display:none;" oninput="updateReview()">
+      <div class="field-err" id="err-c${id}-proj">Required</div>
+    </div>
+
+    <div class="field">
+      <label>Developer / Builder Name</label>
+      <input type="text" id="c${id}-dev" readonly placeholder="Auto-filled from project" value="${esc(devValue)}">
+    </div>
+
+    <div class="field">
+      <label>Status <span class="req">*</span></label>
+      <select id="c${id}-status" onchange="applyStatusColor(this); updateReview()">
+        <option value="">Select</option>
+        <option value="Hot">🔴 Hot</option>
+        <option value="Warm">🟠 Warm</option>
+        <option value="Cold">🔵 Cold</option>
+      </select>
+      <div class="field-err" id="err-c${id}-status">Required</div>
+    </div>
+
+    <div class="sub-label">Builder Contact Details</div>
+
+    <div class="field">
+      <label>Builder Sourcing Manager Name <span class="req">*</span></label>
+      <input type="text" id="c${id}-srcName" placeholder="Manager name" oninput="updateReview()">
+      <div class="field-err" id="err-c${id}-srcName">Required</div>
+    </div>
+
+    <div class="field">
+      <label>Builder Sourcing Manager Contact <span class="req">*</span></label>
+      <input type="tel" id="c${id}-srcContact" placeholder="10-digit number" maxlength="10" oninput="livePhone(this)">
+      <div class="field-err" id="err-c${id}-srcContact">Must be exactly 10 digits</div>
+    </div>
+
+    <div class="field">
+      <label>Builder Closing Manager Name</label>
+      <input type="text" id="c${id}-closeNm" placeholder="Manager name" oninput="updateReview()">
+    </div>
+
+    <div class="field">
+      <label>Visit Date <span class="req">*</span></label>
+      <input type="date" id="c${id}-date" value="${esc(pf.visitDate || '')}" onchange="updateReview()">
+      <div class="field-err" id="err-c${id}-date">Required</div>
+    </div>
+
+    <div class="field">
+      <label>Remarks <span class="req">*</span></label>
+      <textarea id="c${id}-remark" placeholder="Notes or remarks…" oninput="updateReview()"></textarea>
+      <div class="field-err" id="err-c${id}-remark">Required</div>
+    </div>
+  `;
+
+  document.getElementById('clientsContainer').appendChild(div);
+
+  // If prefill had a project pre-selected, trigger the change to fill developer
+  if (pf.projectName) setTimeout(() => onProjectChange(id), 50);
+
+  updateReview();
+}
+
+function onProjectChange(id) {
+  const sel  = document.getElementById(`c${id}-proj`);
+  const other= document.getElementById(`c${id}-projOther`);
+  other.style.display = sel.value === '__other__' ? 'block' : 'none';
+  const proj = projData.find(p => p.projectName === sel.value);
+  const devEl = document.getElementById(`c${id}-dev`);
+  if (proj) devEl.value = proj.developerName || '';
+  else if (sel.value !== '__other__') devEl.value = '';
+  updateReview();
+}
+
+function applyStatusColor(sel) {
+  sel.className = sel.className.replace(/\bs-\w+/g, '');
+  if (sel.value === 'Hot')  sel.classList.add('s-hot');
+  if (sel.value === 'Warm') sel.classList.add('s-warm');
+  if (sel.value === 'Cold') sel.classList.add('s-cold');
+}
+
+function livePhone(input) {
+  const c = input.value.replace(/\D/g, '');
+  if (c !== input.value) input.value = c;
+  input.classList.remove('phone-ok','phone-bad');
+  if (!c.length) return;
+  input.classList.add(c.length === 10 ? 'phone-ok' : 'phone-bad');
   updateReview();
 }
 
 function removeClient(id) {
-  var el = document.getElementById('client-' + id);
-  if (el) el.parentNode.removeChild(el);
+  const el = document.getElementById('client-' + id);
+  if (el) el.remove();
   updateReview();
 }
 
-function escHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ── Get concatenated budget string ──
-function getBudget(id) {
-  var num   = (document.getElementById('c' + id + '-budgetNum')   || {}).value || '';
-  var denom = (document.getElementById('c' + id + '-budgetDenom') || {}).value || 'Lakh';
-  if (!num) return '';
-  return num + ' ' + denom;
-}
-
-// ================================================================
-//  REVIEW PANEL
-// ================================================================
 function getClientIds() {
-  var blocks = document.querySelectorAll('.client-block');
-  var ids = [];
-  for (var i = 0; i < blocks.length; i++) {
-    ids.push(blocks[i].id.replace('client-', ''));
-  }
-  return ids;
+  return [...document.querySelectorAll('.client-block')].map(b => b.id.replace('client-',''));
 }
 
 function getProjectName(id) {
-  var sel = document.getElementById('c' + id + '-projectName');
+  const sel = document.getElementById(`c${id}-proj`);
   if (!sel) return '';
-  if (sel.value === '__other__') {
-    var other = document.getElementById('c' + id + '-projectNameOther');
-    return other ? other.value : '';
-  }
+  if (sel.value === '__other__') return (document.getElementById(`c${id}-projOther`) || {}).value || '';
   return sel.value;
 }
 
-function statusPill(status) {
-  if (status === 'Hot')  return '<span class="pill pill-hot">🔴 Hot</span>';
-  if (status === 'Warm') return '<span class="pill pill-warm">🟠 Warm</span>';
-  if (status === 'Cold') return '<span class="pill pill-cold">🔵 Cold</span>';
-  return escHtml(status);
+function getBudget(id) {
+  const num   = (document.getElementById(`c${id}-budgetNum`)   || {}).value || '';
+  const denom = (document.getElementById(`c${id}-budgetDenom`) || {}).value || 'Lakh';
+  return num ? `${num} ${denom}` : '';
 }
 
+// ── REVIEW ────────────────────────────────────────────────────
 function updateReview() {
-  var ids = getClientIds();
-  var reviewCards   = document.getElementById('review-cards');
-  var reviewSection = document.getElementById('review-section');
-  reviewCards.innerHTML = '';
-  document.getElementById('review-count').textContent = ids.length;
+  const ids   = getClientIds();
+  const cards = document.getElementById('reviewCards');
+  cards.innerHTML = '';
+  document.getElementById('reviewCount').textContent = ids.length;
 
-  ids.forEach(function(id) {
-    var name    = (document.getElementById('c' + id + '-customerName')  || {}).value || '';
-    var contact = (document.getElementById('c' + id + '-contactNumber') || {}).value || '';
-    var status  = (document.getElementById('c' + id + '-status')        || {}).value || '';
-    var budget  = getBudget(id);
-    var project = getProjectName(id);
-
-    var card = document.createElement('div');
+  ids.forEach(id => {
+    const name    = (document.getElementById(`c${id}-name`)    || {}).value || '';
+    const contact = (document.getElementById(`c${id}-contact`) || {}).value || '';
+    const status  = (document.getElementById(`c${id}-status`)  || {}).value || '';
+    const budget  = getBudget(id);
+    const project = getProjectName(id);
+    const card = document.createElement('div');
     card.className = 'review-card';
     card.innerHTML =
-      '<div class="review-card-name">' + (name ? escHtml(name) : '<em style="color:#aaa;font-weight:400">No name entered</em>') + '</div>' +
-      (contact ? '<div class="review-card-row"><strong>📞</strong> ' + escHtml(contact) + '</div>' : '') +
-      (project ? '<div class="review-card-row"><strong>🏗</strong> ' + escHtml(project) + '</div>' : '') +
-      (status  ? '<div class="review-card-row"><strong>📌</strong> ' + statusPill(status) + '</div>' : '') +
-      (budget  ? '<div class="review-card-row"><strong>💰</strong> ₹' + escHtml(budget)  + '</div>' : '');
-    reviewCards.appendChild(card);
+      `<div class="review-card-name">${name ? esc(name) : '<em style="opacity:0.5">No name entered</em>'}</div>` +
+      (contact ? `<div class="review-card-row">📞 ${esc(contact)}</div>` : '') +
+      (project ? `<div class="review-card-row">🏗 ${esc(project)}</div>` : '') +
+      (status  ? `<div class="review-card-row">📌 ${esc(status)}</div>` : '') +
+      (budget  ? `<div class="review-card-row">💰 ₹${esc(budget)}</div>` : '');
+    cards.appendChild(card);
   });
 
-  var hasTL = document.getElementById('teamLeaderSelect').value;
-if (ids.length > 0 && hasTL) {
-    reviewSection.classList.add('visible');
-  } else {
-    reviewSection.classList.remove('visible');
-  }
+  const hasTL = document.getElementById('tlSelect').value;
+  document.getElementById('reviewSection').classList.toggle('show', ids.length > 0 && !!hasTL);
 }
 
-// ================================================================
-//  VALIDATION  [FIX 5: new required fields added]
-// ================================================================
+// ── VALIDATION ────────────────────────────────────────────────
 function validateAll() {
-  var valid = true;
+  let valid = true;
+  const tl  = document.getElementById('tlSelect').value;
+  mark('tlSelect', !!tl, 'err-tl');
+  if (!tl) valid = false;
 
-  var tlName = document.getElementById('teamLeaderSelect').value;
-  markField('teamLeaderSelect', !!tlName);
-  if (!tlName) valid = false;
+  getClientIds().forEach(id => {
+    const name       = (val(`c${id}-name`)       || '').trim();
+    const contact    = (val(`c${id}-contact`)    || '').trim();
+    const se         = val(`c${id}-se`)          || '';
+    const ptype      = val(`c${id}-ptype`)       || '';
+    const config     = val(`c${id}-config`)      || '';
+    const budgetNum  = (val(`c${id}-budgetNum`)  || '').trim();
+    const status     = val(`c${id}-status`)      || '';
+    const srcName    = (val(`c${id}-srcName`)    || '').trim();
+    const srcContact = (val(`c${id}-srcContact`) || '').trim();
+    const date       = val(`c${id}-date`)        || '';
+    const remark     = (val(`c${id}-remark`)     || '').trim();
+    const project    = getProjectName(id);
 
-  getClientIds().forEach(function(id) {
-    var name        = ((document.getElementById('c' + id + '-customerName')       || {}).value || '').trim();
-    var contact     = ((document.getElementById('c' + id + '-contactNumber')      || {}).value || '').trim();
-    var ptype       = ((document.getElementById('c' + id + '-propertyType')       || {}).value || '');
-    var config      = ((document.getElementById('c' + id + '-configuration')      || {}).value || '');
-    var budgetNum   = ((document.getElementById('c' + id + '-budgetNum')          || {}).value || '').trim();
-    var status      = ((document.getElementById('c' + id + '-status')             || {}).value || '');
-    var srcName     = ((document.getElementById('c' + id + '-builderSourcingName')   || {}).value || '').trim();
-    var srcContact  = ((document.getElementById('c' + id + '-builderSourcingContact') || {}).value || '').trim();
-    var visitDate   = ((document.getElementById('c' + id + '-visitDate')          || {}).value || '');
-    var remark      = ((document.getElementById('c' + id + '-remark')             || {}).value || '').trim();
-    var salesExec = ((document.getElementById('c' + id + '-salesExec') || {}).value || '');
-    markField('c' + id + '-salesExec', !!salesExec);
-    
-    if (!salesExec) valid = false;
-    var proj        = getProjectName(id);
+    const cOk  = !!contact  && /^\d{10}$/.test(contact);
+    const scOk = !!srcContact && /^\d{10}$/.test(srcContact);
 
-    var contactOk = !!contact && /^\d{10}$/.test(contact);
-    var srcContactOk = !srcContact || /^\d{10}$/.test(srcContact); // if filled, must be 10 digits
+    mark(`c${id}-name`,       !!name,                               `err-c${id}-name`);
+    mark(`c${id}-contact`,    cOk,                                  `err-c${id}-contact`);
+    mark(`c${id}-se`,         !!se,                                 `err-c${id}-se`);
+    mark(`c${id}-ptype`,      !!ptype,                              `err-c${id}-ptype`);
+    mark(`c${id}-config`,     !!config,                             `err-c${id}-config`);
+    mark(`c${id}-budgetNum`,  !!budgetNum && !isNaN(Number(budgetNum)), `err-c${id}-budgetNum`);
+    mark(`c${id}-proj`,       !!project,                            `err-c${id}-proj`);
+    mark(`c${id}-status`,     !!status,                             `err-c${id}-status`);
+    mark(`c${id}-srcName`,    !!srcName,                            `err-c${id}-srcName`);
+    mark(`c${id}-srcContact`, scOk,                                 `err-c${id}-srcContact`);
+    mark(`c${id}-date`,       !!date,                               `err-c${id}-date`);
+    mark(`c${id}-remark`,     !!remark,                             `err-c${id}-remark`);
 
-    markField('c' + id + '-customerName',            !!name);
-    markField('c' + id + '-contactNumber',           contactOk);
-    markField('c' + id + '-propertyType',            !!ptype);
-    markField('c' + id + '-configuration',           !!config);
-    markField('c' + id + '-budgetNum',               !!budgetNum && !isNaN(Number(budgetNum)));
-    markField('c' + id + '-projectName',             !!proj);
-    markField('c' + id + '-status',                  !!status);
-    markField('c' + id + '-builderSourcingName',     !!srcName);
-    markField('c' + id + '-builderSourcingContact',  !!srcContact && /^\d{10}$/.test(srcContact));
-    markField('c' + id + '-visitDate',               !!visitDate);
-    markField('c' + id + '-remark',                  !!remark);
-
-    if (!name || !contactOk || !ptype || !config || !budgetNum || isNaN(Number(budgetNum)) ||
-        !proj || !status || !srcName || !srcContact || !visitDate || !remark) {
-      valid = false;
-    }
+    if (!name || !cOk || !se || !ptype || !config || !budgetNum || isNaN(Number(budgetNum)) ||
+        !project || !status || !srcName || !scOk || !date || !remark) valid = false;
   });
   return valid;
 }
 
-function markField(id, isValid) {
-  var el  = document.getElementById(id);
-  var err = document.getElementById('err-' + id);
-  if (!el) return;
-  if (isValid) { el.classList.remove('invalid'); } else { el.classList.add('invalid'); }
-  if (err) {
-    if (isValid) { err.classList.remove('visible'); } else { err.classList.add('visible'); }
-  }
+function val(id)       { return (document.getElementById(id) || {}).value; }
+function mark(id, ok, errId) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('invalid', !ok);
+  const er = document.getElementById(errId);
+  if (er) er.classList.toggle('show', !ok);
 }
 
-// ================================================================
-//  SUBMIT
-// ================================================================
+// ── SUBMIT ─────────────────────────────────────────────────────
 function submitAll() {
   if (!validateAll()) {
-    showToast('Please fill all required fields correctly', true);
+    toast('Please fill all required fields correctly', 'error');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
 
-  var btn     = document.getElementById('submit-btn');
-  var spinner = document.getElementById('spinner');
-  var label   = document.getElementById('submit-label');
+  const btn     = document.getElementById('submitBtn');
+  const spinner = document.getElementById('spinner');
+  const label   = document.getElementById('submitLabel');
   btn.disabled          = true;
   spinner.style.display = 'block';
   label.textContent     = 'Submitting…';
 
-  var teamLeader = document.getElementById('teamLeaderSelect').value;
-  var cluster    = document.getElementById('cluster').value;
-  var pnlHead    = document.getElementById('pnlHead').value;
-  var timestamp  = new Date().toISOString();
+  const tl        = document.getElementById('tlSelect').value;
+  const cluster   = document.getElementById('cluster').value;
+  const pnlHead   = document.getElementById('pnlHead').value;
+  const timestamp = new Date().toISOString();
+  const subId     = 'sub_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
 
-  var entries = getClientIds().map(function(id) {
-    return {
-      timestamp:    timestamp,
-      cluster:      cluster,
-      pnlHead:      pnlHead,
-      teamLeaderName: teamLeader,
-      salesExecutiveName: ((document.getElementById('c' + id + '-salesExec') || {}).value || ''),
-      customerName:  ((document.getElementById('c' + id + '-customerName')  || {}).value || ''),
-      contactNumber: ((document.getElementById('c' + id + '-contactNumber') || {}).value || ''),
-      propertyType:  ((document.getElementById('c' + id + '-propertyType')  || {}).value || ''),
-      configuration: ((document.getElementById('c' + id + '-configuration') || {}).value || ''),
-      budget:        getBudget(id),
-      projectName:   getProjectName(id),
-      status:        ((document.getElementById('c' + id + '-status')        || {}).value || ''),
-      builderSourcingManagerName:    ((document.getElementById('c' + id + '-builderSourcingName')    || {}).value || ''),
-      builderSourcingManagerContact: ((document.getElementById('c' + id + '-builderSourcingContact') || {}).value || ''),
-      builderClosingManagerName:     ((document.getElementById('c' + id + '-builderClosingName')     || {}).value || ''),
-      visitDate:     ((document.getElementById('c' + id + '-visitDate')     || {}).value || ''),
-      remark:        ((document.getElementById('c' + id + '-remark')        || {}).value || ''),
-      operationsRemark: ''
-    };
-  });
+  const entries = getClientIds().map(id => ({
+    timestamp,
+    cluster, pnlHead,
+    teamLeaderName:    tl,
+    salesExecutiveName: val(`c${id}-se`)       || '',
+    customerName:       (val(`c${id}-name`)    || '').trim(),
+    contactNumber:      val(`c${id}-contact`)  || '',
+    propertyType:       val(`c${id}-ptype`)    || '',
+    configuration:      val(`c${id}-config`)   || '',
+    budget:             getBudget(id),
+    projectName:        getProjectName(id),
+    developerName:      val(`c${id}-dev`)      || '',
+    status:             val(`c${id}-status`)   || '',
+    builderSourcingManagerName:    (val(`c${id}-srcName`)    || '').trim(),
+    builderSourcingManagerContact: val(`c${id}-srcContact`)  || '',
+    builderClosingManagerName:     (val(`c${id}-closeNm`)    || '').trim(),
+    visitDate:          val(`c${id}-date`)     || '',
+    remark:             (val(`c${id}-remark`)  || '').trim(),
+    operationsRemark:   '',
+    convertedFromVisit: prefillData.convertedFromVisit === 'Yes'
+  }));
 
-  var submissionId = 'sub_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-  var payload = JSON.stringify({ action: 'submitEntries', entries: entries, submissionId: submissionId });
-
-  fetch(APPS_SCRIPT_URL, {
-    method:  'POST',
-    mode:    'no-cors',
+  fetch(GAS_URL, {
+    method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body:    'data=' + encodeURIComponent(payload)
+    body: 'data=' + encodeURIComponent(JSON.stringify({ action: 'submitFNClient', entries, submissionId: subId }))
   })
-  .then(function() {
-    return pollForConfirmation(submissionId, 0);
-  })
-  .then(function(confirmed) {
+  .then(() => pollConfirm(subId, 0))
+  .then(confirmed => {
     if (confirmed) {
-      document.getElementById('success-sub-text').textContent =
-        entries.length + ' client' + (entries.length > 1 ? 's' : '') + ' submitted by TL:' + teamLeader  + '.';
-      document.getElementById('success-banner').classList.add('visible');
-      document.getElementById('salesperson-section').style.display = 'none';
-      document.getElementById('clients-section').style.display     = 'none';
-      document.getElementById('review-section').classList.remove('visible');
-      document.getElementById('submit-btn').style.display          = 'none';
+      document.getElementById('successSub').textContent = `${entries.length} client(s) submitted by TL: ${tl}`;
+      document.getElementById('successBanner').classList.add('show');
+      document.getElementById('spSection').style.display    = 'none';
+      document.getElementById('clientsSection').style.display = 'none';
+      document.getElementById('reviewSection').classList.remove('show');
+      document.getElementById('submitBtn').style.display    = 'none';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      throw new Error('Could not confirm submission. Data may have been saved — please check your sheet before retrying.');
+      throw new Error('Could not confirm submission. Data may have saved — check your sheet before retrying.');
     }
   })
-  .catch(function(err) {
-    showToast(err.message || 'Submission failed', true);
-    // FIX 1: fully restore button state on any error/failure
+  .catch(err => {
+    toast(err.message || 'Submission failed', 'error');
     btn.disabled          = false;
     spinner.style.display = 'none';
     label.textContent     = 'Submit All Entries';
   });
 }
 
-// ================================================================
-//  POLL FOR CONFIRMATION via JSONP
-// ================================================================
-function pollForConfirmation(submissionId, attempt) {
-  return new Promise(function(resolve) {
+// ── POLL FOR CONFIRMATION ──────────────────────────────────────
+function pollConfirm(subId, attempt) {
+  return new Promise(resolve => {
     if (attempt > 10) { resolve(false); return; }
-
-    var delay = attempt === 0 ? 1500 : 2500;
-
-    setTimeout(function() {
-      var cbName   = '__pollCb_' + Date.now();
-      var scriptEl = document.createElement('script');
-
-      var timer = setTimeout(function() {
-        cleanup();
-        pollForConfirmation(submissionId, attempt + 1).then(resolve);
-      }, 4000);
-
-      window[cbName] = function(data) {
-        cleanup();
-        if (data && data.confirmed) { resolve(true); }
-        else { pollForConfirmation(submissionId, attempt + 1).then(resolve); }
-      };
-
-      scriptEl.onerror = function() {
-        cleanup();
-        pollForConfirmation(submissionId, attempt + 1).then(resolve);
-      };
-
-      function cleanup() {
-        clearTimeout(timer);
-        delete window[cbName];
-        if (scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
-      }
-
-      scriptEl.src = APPS_SCRIPT_URL + '?action=checkSubmission&submissionId=' + submissionId + '&callback=' + cbName;
-      document.head.appendChild(scriptEl);
-    }, delay);
+    setTimeout(() => {
+      jsonpFetch({ action: 'checkSubmission', submissionId: subId }, data => {
+        if (data && data.confirmed) resolve(true);
+        else pollConfirm(subId, attempt + 1).then(resolve);
+      }, () => pollConfirm(subId, attempt + 1).then(resolve));
+    }, attempt === 0 ? 1500 : 2500);
   });
 }
 
-// ================================================================
-//  RESET  [FIX 1: also fully reset button state here]
-// ================================================================
+// ── RESET ──────────────────────────────────────────────────────
 function resetForm() {
-  // Fully reset submit button before showing form again
-  var btn     = document.getElementById('submit-btn');
-  var spinner = document.getElementById('spinner');
-  var label   = document.getElementById('submit-label');
-  btn.disabled          = false;
-  spinner.style.display = 'none';
-  label.textContent     = 'Submit All Entries';
-  btn.style.display     = 'none';
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = false;
+  document.getElementById('spinner').style.display = 'none';
+  document.getElementById('submitLabel').textContent = 'Submit All Entries';
+  btn.style.display = 'none';
 
-  document.getElementById('success-banner').classList.remove('visible');
-  document.getElementById('salesperson-section').style.display = 'block';
-  document.getElementById('teamLeaderSelect').value = '';
-  document.getElementById('cluster').value        = '';
-  document.getElementById('pnlHead').value        = '';
-  document.getElementById('clients-container').innerHTML = '';
+  document.getElementById('successBanner').classList.remove('show');
+  document.getElementById('spSection').style.display    = 'block';
+  document.getElementById('tlSelect').value             = '';
+  document.getElementById('cluster').value              = '';
+  document.getElementById('pnlHead').value              = '';
+  document.getElementById('clientsContainer').innerHTML = '';
   clientCount = 0;
-  document.getElementById('clients-section').style.display = 'none';
-  document.getElementById('review-section').classList.remove('visible');
+  document.getElementById('clientsSection').style.display = 'none';
+  document.getElementById('reviewSection').classList.remove('show');
+  prefillData = {};
+  document.getElementById('prefillBanner').classList.remove('show');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ================================================================
-//  TOAST
-// ================================================================
-function showToast(msg, isError) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = (isError ? 'error' : '') + ' show';
-  setTimeout(function() { t.className = isError ? 'error' : ''; }, 3500);
+// ── HELPERS ───────────────────────────────────────────────────
+function esc(s) { return String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+let toastTimer;
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = ['show', type||''].filter(Boolean).join(' ');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+}
+
+function jsonpFetch(params, onSuccess, onError) {
+  const cbName = '__cb_' + Date.now() + '_' + Math.random().toString(36).slice(2,5);
+  const script = document.createElement('script');
+  const qs     = Object.entries({...params, callback: cbName}).map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+  const timer  = setTimeout(() => { cleanup(); if (onError) onError(new Error('Timeout')); }, 12000);
+  window[cbName] = data => { cleanup(); onSuccess(data); };
+  script.onerror = () => { cleanup(); if (onError) onError(new Error('Load failed')); };
+  function cleanup() { clearTimeout(timer); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
+  script.src = GAS_URL + '?' + qs;
+  document.head.appendChild(script);
 }
 </script>
 </body>
