@@ -835,7 +835,7 @@ function submitAll() {
   fetch(GAS_URL, {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'data=' + encodeURIComponent(JSON.stringify({ action: 'submitFNClient', entries, submissionId: subId }))
+    body: 'data=' + encodeURIComponent(JSON.stringify({ action: 'submitEntries', entries, submissionId: subId }))
   })
   .then(() => pollConfirm(subId, 0))
   .then(confirmed => {
