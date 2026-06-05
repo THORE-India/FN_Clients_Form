@@ -126,6 +126,7 @@
   .field label { display: block; font-size: 0.7rem; font-weight: 600; color: var(--text-muted); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 6px; }
   label .req { color: var(--gold); margin-left: 2px; }
 
+  /* ── Mobile-first: inputs always 16px to prevent iOS zoom ── */
   input[type="text"], input[type="tel"], input[type="date"], input[type="number"],
   select, textarea {
     width: 100%;
@@ -135,7 +136,7 @@
     border-radius: var(--radius-sm);
     color: var(--text);
     font-family: 'Outfit', sans-serif;
-    font-size: 0.92rem;
+    font-size: 16px;           /* CRITICAL: prevents iOS auto-zoom */
     outline: none;
     transition: var(--transition);
     -webkit-appearance: none; appearance: none;
@@ -147,7 +148,12 @@
   }
   input::placeholder, textarea::placeholder { color: var(--text-muted); font-size: 0.85rem; }
   input[readonly] { background: var(--surface); color: var(--text-muted); cursor: default; border-color: var(--border); }
-  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237a7a8e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237a7a8e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 32px;
+  }
   select option { background: var(--surface2); }
   textarea { resize: vertical; min-height: 80px; }
 
@@ -162,11 +168,10 @@
 
   /* Grid helpers */
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  @media (max-width: 400px) { .grid-2 { grid-template-columns: 1fr; } }
 
-  .budget-row { display: flex; gap: 8px; }
+  .budget-row { display: flex; gap: 8px; align-items: flex-start; }
   .budget-row input { flex: 1; min-width: 0; }
-  .budget-row select { width: 105px; flex-shrink: 0; }
+  .budget-row select { width: 110px; flex-shrink: 0; }
 
   /* ── Client Block ────────────────────────────────────────────── */
   .client-block {
@@ -339,6 +344,81 @@
   input.invalid, select.invalid, textarea.invalid { border-color: var(--red) !important; }
   .field-err { font-size: 0.72rem; color: var(--red); margin-top: 4px; display: none; }
   .field-err.show { display: block; }
+
+  /* ── Responsive ───────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    /* Header: keep logo + badge on same line, shrink both */
+    .app-header { padding: 0.7rem 1rem; }
+    .app-header h1 { font-size: 0.95rem; }
+    .app-header h1 small { display: none; }   /* hide subtitle on mobile */
+    .header-badge { font-size: 0.62rem; padding: 3px 9px; }
+
+    /* Container: reduce side padding */
+    .container { padding: 14px 12px; }
+
+    /* Section cards: tighter */
+    .section-card { padding: 16px 14px; margin-bottom: 10px; border-radius: 12px; }
+    .section-label { font-size: 0.6rem; margin-bottom: 12px; }
+
+    /* Fields */
+    .field { margin-bottom: 11px; }
+    .field label { font-size: 0.66rem; margin-bottom: 5px; }
+
+    /* Grid: collapse to single column */
+    .grid-2 { grid-template-columns: 1fr; gap: 11px; }
+
+    /* Budget row: keep inline but shrink denom select */
+    .budget-row { gap: 6px; }
+    .budget-row select { width: 95px; }
+
+    /* Client block */
+    .client-block { padding: 14px 12px; margin-bottom: 10px; border-radius: 12px; }
+    .client-num { font-size: 0.82rem; }
+    .client-badge { width: 20px; height: 20px; font-size: 0.65rem; }
+    .remove-btn { padding: 3px 10px; font-size: 0.7rem; }
+    .sub-label { font-size: 0.6rem; margin: 11px 0 7px; }
+
+    /* Add client button */
+    .add-client-btn { padding: 12px; font-size: 0.82rem; border-radius: 10px; margin-bottom: 14px; }
+
+    /* Review section */
+    #reviewSection { padding: 14px; }
+    .review-title { font-size: 0.68rem; }
+    .review-card { padding: 9px 11px; }
+    .review-card-name { font-size: 0.82rem; }
+    .review-card-row { font-size: 0.7rem; }
+
+    /* Submit button */
+    .submit-btn { padding: 14px; font-size: 0.9rem; letter-spacing: 0.03em; }
+
+    /* Success banner */
+    #successBanner { padding: 1.5rem 1rem; }
+    .success-icon { font-size: 2.5rem; }
+    .success-title { font-size: 1.2rem; }
+
+    /* Prefill banner */
+    .prefill-banner { margin: 12px; font-size: 0.78rem; padding: 9px 13px; }
+
+    /* Toast */
+    #toast {
+      bottom: 14px;
+      max-width: calc(100vw - 24px);
+      font-size: 0.8rem;
+      padding: 0.7rem 1rem;
+      white-space: normal;
+      text-align: center;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .app-header h1 { font-size: 0.85rem; }
+    .header-badge { display: none; }   /* hide on very small screens */
+    .container { padding: 10px 10px; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .budget-row { flex-direction: column; }
+    .budget-row select { width: 100%; }
+    .submit-btn { font-size: 0.82rem; padding: 13px; }
+  }
 </style>
 </head>
 <body>
@@ -412,8 +492,11 @@
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────
-// Replace with your deployed GAS Web App URL
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzvGG3F4nYcsXbxtSGt5brYc1nNqP-87QGWY-bhsJwZlSMzrdrZTcsWMf0A71UFsfgNoQ/exec';
+// FN Clients form now reads master data from AND submits to
+// the Friday Lineup GAS (single source of truth).
+// The Friday Lineup GAS will forward a copy to the old FN Clients
+// GAS automatically on the server side.
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwL4V1nCL4M-BAMbHX0Wupfa_2mxaJXrb_p9japd1ZdAkesb4BUumSJBFGH54js7pe3/exec';
 
 // ── STATE ─────────────────────────────────────────────────────
 let empData     = [];
@@ -449,18 +532,9 @@ function loadMasterData() {
   sel.innerHTML = '<option value="">⏳ Loading…</option>';
 
   jsonpFetch({ action: 'getMasterData' }, data => {
-
-    console.log("API RESPONSE:", data);
-
-    // FIXED HERE
-    if (!data.success) {
-      sel.innerHTML = '<option value="">❌ Load failed — refresh</option>';
-      return;
-    }
-
-    empData  = data.employees || [];
-    projData = data.projects || [];
-
+    if (!data.ok) { sel.innerHTML = '<option value="">❌ Load failed — refresh</option>'; return; }
+    empData  = data.employees  || [];
+    projData = data.projects   || [];
     populateTLDropdown();
 
     // Apply prefill AFTER data loads
@@ -468,13 +542,7 @@ function loadMasterData() {
       sel.value = prefillData.teamLead;
       onTLChange(prefillData.teamLead, true);
     }
-
-  }, err => {
-
-    console.error("LOAD ERROR:", err);
-
-    sel.innerHTML = '<option value="">❌ Network error</option>';
-  });
+  }, () => { sel.innerHTML = '<option value="">❌ Network error</option>'; });
 }
 
 function populateTLDropdown() {
@@ -835,7 +903,7 @@ function submitAll() {
   fetch(GAS_URL, {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'data=' + encodeURIComponent(JSON.stringify({ action: 'submitEntries', entries, submissionId: subId }))
+    body: 'data=' + encodeURIComponent(JSON.stringify({ action: 'submitFNClient', entries, submissionId: subId }))
   })
   .then(() => pollConfirm(subId, 0))
   .then(confirmed => {
