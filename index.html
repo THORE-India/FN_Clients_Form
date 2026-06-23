@@ -419,6 +419,34 @@
     .budget-row select { width: 100%; }
     .submit-btn { font-size: 0.82rem; padding: 13px; }
   }
+
+  /* ── Searchable Project Combobox ─────────────────────────────── */
+  .combo-wrap { position: relative; }
+  .combo-input {
+    width: 100%; padding: 0.8rem 1rem;
+    background: var(--surface2); border: 1.5px solid var(--border-mid);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-family: 'Outfit', sans-serif; font-size: 16px; outline: none;
+    transition: var(--transition);
+  }
+  .combo-input:focus { border-color: var(--gold); background: var(--surface3); box-shadow: 0 0 0 3px var(--gold-dim); }
+  .combo-list {
+    display: none;
+    position: absolute; left: 0; right: 0; top: calc(100% + 4px);
+    background: var(--surface3); border: 1.5px solid var(--border-mid);
+    border-radius: var(--radius-sm); max-height: 220px; overflow-y: auto;
+    z-index: 50; box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+  }
+  .combo-list.show { display: block; }
+  .combo-opt {
+    padding: 10px 14px; font-size: 0.88rem; cursor: pointer;
+    border-bottom: 1px solid var(--border);
+  }
+  .combo-opt:last-child { border-bottom: none; }
+  .combo-opt:hover, .combo-opt.active { background: var(--gold-dim); color: var(--gold-light); }
+  .combo-opt.other { color: var(--gold); font-weight: 600; }
+  .combo-empty { padding: 10px 14px; font-size: 0.82rem; color: var(--text-muted); }
+  
 </style>
 </head>
 <body>
@@ -666,7 +694,17 @@ function addClient(prefill) {
 
     <div class="field">
       <label>Project Name <span class="req">*</span></label>
-      <select id="c${id}-proj" onchange="onProjectChange(${id})">${projOpts}</select>
+      <div class="combo-wrap">
+        <input type="text" class="combo-input" id="c${id}-proj"
+               placeholder="Type to search project…"
+               value="${esc(pf.projectName || '')}"
+               data-value="${esc(pf.projectName || '')}"
+               autocomplete="off"
+               oninput="comboFilter(${id})"
+               onfocus="comboFilter(${id})"
+               onblur="comboBlur(${id})">
+        <div class="combo-list" id="c${id}-projList"></div>
+      </div>
       <input type="text" id="c${id}-projOther" placeholder="Enter project name"
              style="margin-top:8px;display:none;" oninput="updateReview()">
       <div class="field-err" id="err-c${id}-proj">Required</div>
@@ -723,19 +761,13 @@ function addClient(prefill) {
   document.getElementById('clientsContainer').appendChild(div);
 
   // If prefill had a project pre-selected, trigger the change to fill developer
-  if (pf.projectName) setTimeout(() => onProjectChange(id), 50);
+  if (pf.projectName) {
+      setTimeout(() => {
+        const proj = projData.find(p => p.projectName === pf.projectName);
+        document.getElementById(`c${id}-dev`).value = proj ? (proj.developerName || '') : (pf.developerName || '');
+      }, 50);
+    }
 
-  updateReview();
-}
-
-function onProjectChange(id) {
-  const sel  = document.getElementById(`c${id}-proj`);
-  const other= document.getElementById(`c${id}-projOther`);
-  other.style.display = sel.value === '__other__' ? 'block' : 'none';
-  const proj = projData.find(p => p.projectName === sel.value);
-  const devEl = document.getElementById(`c${id}-dev`);
-  if (proj) devEl.value = proj.developerName || '';
-  else if (sel.value !== '__other__') devEl.value = '';
   updateReview();
 }
 
@@ -765,12 +797,81 @@ function getClientIds() {
   return [...document.querySelectorAll('.client-block')].map(b => b.id.replace('client-',''));
 }
 
-function getProjectName(id) {
-  const sel = document.getElementById(`c${id}-proj`);
-  if (!sel) return '';
-  if (sel.value === '__other__') return (document.getElementById(`c${id}-projOther`) || {}).value || '';
-  return sel.value;
+function comboFilter(id) {
+  const input = document.getElementById(`c${id}-proj`);
+  const list  = document.getElementById(`c${id}-projList`);
+  const q     = input.value.trim().toLowerCase();
+
+  const matches = q
+    ? projData.filter(p => p.projectName.toLowerCase().includes(q))
+    : projData;
+
+  let html = '';
+  matches.slice(0, 50).forEach(p => {
+    html += `<div class="combo-opt" onmousedown="comboSelect(${id}, '${escJs(p.projectName)}')">${esc(p.projectName)}</div>`;
+  });
+
+  if (q && !matches.some(p => p.projectName.toLowerCase() === q)) {
+    html += `<div class="combo-opt other" onmousedown="comboSelect(${id}, '__other__', '${escJs(input.value.trim())}')">➕ Use "${esc(input.value.trim())}" (not listed)</div>`;
+  }
+  if (!matches.length && !q) html = `<div class="combo-empty">Start typing to search…</div>`;
+
+  list.innerHTML = html || `<div class="combo-empty">No matches</div>`;
+  list.classList.add('show');
 }
+
+function comboSelect(id, value, customText) {
+  const input = document.getElementById(`c${id}-proj`);
+  const other = document.getElementById(`c${id}-projOther`);
+  const list  = document.getElementById(`c${id}-projList`);
+  const devEl = document.getElementById(`c${id}-dev`);
+
+  if (value === '__other__') {
+    input.value = customText;
+    input.dataset.value = '__other__';
+    other.style.display = 'block';
+    other.value = customText;
+    devEl.value = '';
+  } else {
+    input.value = value;
+    input.dataset.value = value;
+    other.style.display = 'none';
+    const proj = projData.find(p => p.projectName === value);
+    devEl.value = proj ? (proj.developerName || '') : '';
+  }
+  list.classList.remove('show');
+  mark(`c${id}-proj`, true, `err-c${id}-proj`);
+  updateReview();
+}
+
+function comboBlur(id) {
+  // Slight delay so the mousedown on an option still registers before hiding
+  setTimeout(() => {
+    const list  = document.getElementById(`c${id}-projList`);
+    const input = document.getElementById(`c${id}-proj`);
+    if (list) list.classList.remove('show');
+
+    // If user typed something but never picked from the list or "Other", fall back gracefully
+    if (input && input.value.trim() && input.dataset.value !== input.value.trim()) {
+      const exact = projData.find(p => p.projectName === input.value.trim());
+      if (exact) {
+        input.dataset.value = exact.projectName;
+        document.getElementById(`c${id}-dev`).value = exact.developerName || '';
+      }
+    }
+  }, 150);
+}
+
+function getProjectName(id) {
+  const input = document.getElementById(`c${id}-proj`);
+  if (!input) return '';
+  if (input.dataset.value === '__other__') {
+    return (document.getElementById(`c${id}-projOther`) || {}).value || '';
+  }
+  return input.value.trim();
+}
+
+function escJs(s) { return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 
 function getBudget(id) {
   const num   = (document.getElementById(`c${id}-budgetNum`)   || {}).value || '';
