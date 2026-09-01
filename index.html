@@ -606,14 +606,6 @@ function addClient(prefill) {
   const id = clientCount;
   const pf = prefill || {};
 
-  // Project options
-  let projOpts = '<option value="">— Select Project —</option>';
-  projData.forEach(p => {
-    const sel = pf.projectName === p.projectName ? ' selected' : '';
-    projOpts += `<option value="${esc(p.projectName)}"${sel}>${esc(p.projectName)}</option>`;
-  });
-  projOpts += '<option value="__other__">Other (type below)</option>';
-
   // SE options filtered by TL
   const currentTL = document.getElementById('tlSelect').value;
   let seOpts = '<option value="">Select Sales Executive</option>';
@@ -705,9 +697,7 @@ function addClient(prefill) {
                onblur="comboBlur(${id})">
         <div class="combo-list" id="c${id}-projList"></div>
       </div>
-      <input type="text" id="c${id}-projOther" placeholder="Enter project name"
-             style="margin-top:8px;display:none;" oninput="updateReview()">
-      <div class="field-err" id="err-c${id}-proj">Required</div>
+      <div class="field-err" id="err-c${id}-proj">Please pick a project from the list — free-typed names aren't accepted</div>
     </div>
 
     <div class="field">
@@ -844,34 +834,27 @@ function comboFilter(id) {
     html += `<div class="combo-opt" onmousedown="comboSelect(${id}, '${escJs(p.projectName)}')">${esc(p.projectName)}</div>`;
   });
 
-  if (q && !matches.some(p => p.projectName.toLowerCase() === q)) {
-    html += `<div class="combo-opt other" onmousedown="comboSelect(${id}, '__other__', '${escJs(input.value.trim())}')">➕ Use "${esc(input.value.trim())}" (not listed)</div>`;
+  // No "Other / not listed" option any more — projects must come from the master list only.
+  if (!matches.length) {
+    html = q
+      ? `<div class="combo-empty">No matching project — check spelling or ask ops to add it to the master list</div>`
+      : `<div class="combo-empty">Start typing to search…</div>`;
   }
-  if (!matches.length && !q) html = `<div class="combo-empty">Start typing to search…</div>`;
 
-  list.innerHTML = html || `<div class="combo-empty">No matches</div>`;
+  list.innerHTML = html;
   list.classList.add('show');
 }
 
-function comboSelect(id, value, customText) {
+function comboSelect(id, value) {
   const input = document.getElementById(`c${id}-proj`);
-  const other = document.getElementById(`c${id}-projOther`);
   const list  = document.getElementById(`c${id}-projList`);
   const devEl = document.getElementById(`c${id}-dev`);
 
-  if (value === '__other__') {
-    input.value = customText;
-    input.dataset.value = '__other__';
-    other.style.display = 'block';
-    other.value = customText;
-    devEl.value = '';
-  } else {
-    input.value = value;
-    input.dataset.value = value;
-    other.style.display = 'none';
-    const proj = projData.find(p => p.projectName === value);
-    devEl.value = proj ? (proj.developerName || '') : '';
-  }
+  input.value = value;
+  input.dataset.value = value;
+  const proj = projData.find(p => p.projectName === value);
+  devEl.value = proj ? (proj.developerName || '') : '';
+
   list.classList.remove('show');
   mark(`c${id}-proj`, true, `err-c${id}-proj`);
   updateReview();
@@ -883,25 +866,34 @@ function comboBlur(id) {
     const list  = document.getElementById(`c${id}-projList`);
     const input = document.getElementById(`c${id}-proj`);
     if (list) list.classList.remove('show');
+    if (!input) return;
 
-    // If user typed something but never picked from the list or "Other", fall back gracefully
-    if (input && input.value.trim() && input.dataset.value !== input.value.trim()) {
-      const exact = projData.find(p => p.projectName === input.value.trim());
-      if (exact) {
-        input.dataset.value = exact.projectName;
-        document.getElementById(`c${id}-dev`).value = exact.developerName || '';
-      }
+    const typed = input.value.trim();
+    const exact = typed ? projData.find(p => p.projectName === typed) : null;
+
+    if (exact) {
+      // Matches a real project (typed the full exact name without clicking it) — accept it.
+      input.dataset.value = exact.projectName;
+      document.getElementById(`c${id}-dev`).value = exact.developerName || '';
+      mark(`c${id}-proj`, true, `err-c${id}-proj`);
+    } else {
+      // Anything that isn't an exact match to the master list gets rejected —
+      // clear the field rather than let a free-typed / misspelled name through.
+      input.value = '';
+      input.dataset.value = '';
+      document.getElementById(`c${id}-dev`).value = '';
+      mark(`c${id}-proj`, false, `err-c${id}-proj`);
     }
+    updateReview();
   }, 150);
 }
 
 function getProjectName(id) {
   const input = document.getElementById(`c${id}-proj`);
   if (!input) return '';
-  if (input.dataset.value === '__other__') {
-    return (document.getElementById(`c${id}-projOther`) || {}).value || '';
-  }
-  return input.value.trim();
+  // Only ever return a value that is confirmed against the master project list.
+  const valid = projData.some(p => p.projectName === input.dataset.value);
+  return valid ? input.dataset.value : '';
 }
 
 function escJs(s) { return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
