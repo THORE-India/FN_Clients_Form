@@ -682,14 +682,14 @@ function addClient(prefill) {
     <div class="field">
       <label>Budget (₹) <span class="req">*</span></label>
       <div class="budget-row">
-        <input type="number" id="c${id}-budgetNum" placeholder="e.g. 85" min="0" step="any" oninput="updateReview()">
+        <input type="number" id="c${id}-budgetNum" placeholder="e.g. 85 or 50.50" min="0.01" max="99" step="0.01" inputmode="decimal" oninput="onBudgetInput(this)">
         <select id="c${id}-budgetDenom">
           <option value="Lakh">Lakh</option>
           <option value="Cr">Cr</option>
           <option value="Thousand">Thousand</option>
         </select>
       </div>
-      <div class="field-err" id="err-c${id}-budgetNum">Enter a valid number</div>
+      <div class="field-err" id="err-c${id}-budgetNum">Enter a value from 0.01–99 (decimals ok, e.g. 50.50) — pick the unit (Lakh/Cr/Thousand), don't type the full amount</div>
     </div>
 
     <div class="field">
@@ -784,6 +784,39 @@ function livePhone(input) {
   input.classList.remove('phone-ok','phone-bad');
   if (!c.length) return;
   input.classList.add(c.length === 10 ? 'phone-ok' : 'phone-bad');
+  updateReview();
+}
+
+// Live-clamp the budget number field so a full rupee amount (e.g. 10000000)
+// can never be entered directly — force people to use the unit dropdown instead.
+function onBudgetInput(input) {
+  let v = input.value;
+
+  if (v !== '') {
+    // strip anything that isn't a digit or a decimal point (covers paste of large numbers)
+    let cleaned = v.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    if (parts.length > 2) cleaned = parts[0] + '.' + parts.slice(1).join('');
+    if (cleaned !== v) v = cleaned;
+
+    const num = parseFloat(v);
+    if (!isNaN(num)) {
+      if (num > 99) {
+        v = '99';
+      } else if (num < 0) {
+        v = '0';
+      }
+    }
+    if (v !== input.value) input.value = v;
+  }
+
+  const idNum = input.id.match(/^c(\d+)-budgetNum$/);
+  if (idNum) {
+    const num = parseFloat(input.value);
+    const ok  = input.value !== '' && !isNaN(num) && num > 0 && num <= 99;
+    mark(input.id, ok, `err-c${idNum[1]}-budgetNum`);
+  }
+
   updateReview();
 }
 
@@ -931,12 +964,17 @@ function validateAll() {
     const cOk  = !!contact  && /^\d{10}$/.test(contact);
     const scOk = !!srcContact && /^\d{10}$/.test(srcContact);
 
+    // Budget must be a plain number strictly between 0 and 99 (decimals allowed),
+    // e.g. "50.50" for 50.5 Lakh — never a full rupee figure like "10000000".
+    const budgetNumVal = Number(budgetNum);
+    const budgetOk = !!budgetNum && /^\d{1,2}(\.\d+)?$/.test(budgetNum) && !isNaN(budgetNumVal) && budgetNumVal > 0 && budgetNumVal <= 99;
+
     mark(`c${id}-name`,       !!name,                               `err-c${id}-name`);
     mark(`c${id}-contact`,    cOk,                                  `err-c${id}-contact`);
     mark(`c${id}-se`,         !!se,                                 `err-c${id}-se`);
     mark(`c${id}-ptype`,      !!ptype,                              `err-c${id}-ptype`);
     mark(`c${id}-config`,     !!config,                             `err-c${id}-config`);
-    mark(`c${id}-budgetNum`,  !!budgetNum && !isNaN(Number(budgetNum)), `err-c${id}-budgetNum`);
+    mark(`c${id}-budgetNum`,  budgetOk,                             `err-c${id}-budgetNum`);
     mark(`c${id}-proj`,       !!project,                            `err-c${id}-proj`);
     mark(`c${id}-status`,     !!status,                             `err-c${id}-status`);
     mark(`c${id}-srcName`,    !!srcName,                            `err-c${id}-srcName`);
@@ -944,7 +982,7 @@ function validateAll() {
     mark(`c${id}-date`,       !!date,                               `err-c${id}-date`);
     mark(`c${id}-remark`,     !!remark,                             `err-c${id}-remark`);
 
-    if (!name || !cOk || !se || !ptype || !config || !budgetNum || isNaN(Number(budgetNum)) ||
+    if (!name || !cOk || !se || !ptype || !config || !budgetOk ||
         !project || !status || !srcName || !scOk || !date || !remark) valid = false;
   });
   return valid;
