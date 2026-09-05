@@ -518,13 +518,24 @@
 
 <div id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ── CONFIG ────────────────────────────────────────────────────
-// FN Clients form now reads master data from AND submits to
-// the Friday Lineup GAS (single source of truth).
+// FN Clients form still reads master data from AND submits to
+// the Friday Lineup GAS (single source of truth) — UNCHANGED.
 // The Friday Lineup GAS will forward a copy to the old FN Clients
-// GAS automatically on the server side.
+// GAS automatically on the server side, exactly as before.
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwL4V1nCL4M-BAMbHX0Wupfa_2mxaJXrb_p9japd1ZdAkesb4BUumSJBFGH54js7pe3/exec';
+
+// NEW: parallel, best-effort write into Supabase. This never blocks,
+// slows down, or can fail the GAS submission above — it's a shadow
+// copy only, per the migration plan (GAS stays authoritative for FN
+// Clients until you decide otherwise).
+const SUPABASE_URL      = 'https://ivetvywbdewkkqbazjxu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2ZXR2eXdiZGV3a2txYmF6anh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQ2NzcsImV4cCI6MjEwNDE1MDY3N30.1lFi27ywZ1iVAU7NykMKY_Lie3krA58rBFXICXZstgo';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: false }
+});
 
 // ── STATE ─────────────────────────────────────────────────────
 let empData     = [];
@@ -555,14 +566,27 @@ window.onload = function () {
 };
 
 // ── MASTER DATA ───────────────────────────────────────────────
-function loadMasterData() {
+// Reads employee/project lists straight from Supabase (fast, no JSONP
+// round trip) — profiles = employees with a Supabase Auth login
+// (Team Lead and above), employee_master = everyone else (Sales
+// Executives etc. with no login). Both are needed for a complete list.
+// NOTE: this read-only lookup is independent of the GAS submission
+// path below — GAS keeps handling the actual FN Client write.
+async function loadMasterData() {
   const sel = document.getElementById('tlSelect');
   sel.innerHTML = '<option value="">⏳ Loading…</option>';
 
-  jsonpFetch({ action: 'getMasterData' }, data => {
-    if (!data.ok) { sel.innerHTML = '<option value="">❌ Load failed — refresh</option>'; return; }
-    empData  = data.employees  || [];
-    projData = data.projects   || [];
+  try {
+    const [{ data: profiles, error: profErr }, { data: staff, error: staffErr }, { data: projects, error: projErr }] = await Promise.all([
+      supabaseClient.from('profiles').select('full_name, team_lead, cluster, pnl_head'),
+      supabaseClient.from('employee_master').select('full_name, team_lead, cluster, pnl_head'),
+      supabaseClient.from('project_master').select('project_name, developer_name')
+    ]);
+    if (profErr || staffErr || projErr) { sel.innerHTML = '<option value="">❌ Load failed — refresh</option>'; return; }
+
+    const allEmployees = [...(profiles || []), ...(staff || [])];
+    empData  = allEmployees.map(e => ({ name: e.full_name, teamLead: e.team_lead, cluster: e.cluster, pnlHead: e.pnl_head }));
+    projData = (projects || []).map(p => ({ projectName: p.project_name, developerName: p.developer_name }));
     populateTLDropdown();
 
     // Apply prefill AFTER data loads
@@ -570,7 +594,9 @@ function loadMasterData() {
       sel.value = prefillData.teamLead;
       onTLChange(prefillData.teamLead, true);
     }
-  }, () => { sel.innerHTML = '<option value="">❌ Network error</option>'; });
+  } catch (err) {
+    sel.innerHTML = '<option value="">❌ Network error</option>';
+  }
 }
 
 function populateTLDropdown() {
@@ -988,6 +1014,39 @@ function mark(id, ok, errId) {
   if (er) er.classList.toggle('show', !ok);
 }
 
+// ── NEW: parallel Supabase write ────────────────────────────────
+// Fire-and-forget: never awaited by the GAS submit flow below, never
+// shown to the user, and any failure here is only logged to the
+// console. GAS remains the sole source of truth for FN Clients until
+// you decide to cut over — this is purely a shadow copy for the
+// eventual migration.
+function shadowWriteToSupabase(entries) {
+  const rows = entries.map(e => ({
+    cluster:        e.cluster || null,
+    pnl_head:       e.pnlHead || null,
+    team_lead:      e.teamLeaderName || null,
+    sales_executive_name: e.salesExecutiveName,
+    customer_name:  e.customerName || null,
+    contact_number: e.contactNumber || null,
+    property_type:  e.propertyType || null,
+    configuration:  e.configuration || null,
+    budget:         e.budget || null,
+    project_name:   e.projectName || null,
+    developer_name: e.developerName || null,
+    status:         e.status || null,
+    builder_sourcing_manager_name:    e.builderSourcingManagerName || null,
+    builder_sourcing_manager_contact: e.builderSourcingManagerContact || null,
+    builder_closing_manager_name:     e.builderClosingManagerName || null,
+    visit_date:     e.visitDate || null,
+    remark:         e.remark || null,
+    operations_remark: e.operationsRemark || null,
+    converted_from_visit: e.convertedFromVisit === true || e.convertedFromVisit === 'Yes'
+  }));
+  supabaseClient.from('fn_clients').insert(rows)
+    .then(({ error }) => { if (error) console.error('Supabase shadow-write (fn_clients) failed:', error.message); })
+    .catch(err => console.error('Supabase shadow-write (fn_clients) failed:', err));
+}
+
 // ── SUBMIT ─────────────────────────────────────────────────────
 function submitAll() {
   if (!validateAll()) {
@@ -1030,6 +1089,10 @@ function submitAll() {
     operationsRemark:   '',
     convertedFromVisit: prefillData.convertedFromVisit === 'Yes'
   }));
+
+  // NEW: kick off the Supabase shadow-write in parallel — does not block,
+  // does not gate success/failure of the GAS submission below in any way.
+  shadowWriteToSupabase(entries);
 
   fetch(GAS_URL, {
     method: 'POST', mode: 'no-cors',
@@ -1105,6 +1168,8 @@ function toast(msg, type) {
   toastTimer = setTimeout(() => { el.className = ''; }, 3500);
 }
 
+// jsonpFetch is still used ONLY for checkSubmission polling against the
+// GAS project — that endpoint hasn't moved, so this stays as-is.
 function jsonpFetch(params, onSuccess, onError) {
   const cbName = '__cb_' + Date.now() + '_' + Math.random().toString(36).slice(2,5);
   const script = document.createElement('script');
