@@ -518,7 +518,7 @@
 
 <div id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 // ── CONFIG ────────────────────────────────────────────────────
 // FN Clients form still reads master data from AND submits to
@@ -533,9 +533,15 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbwL4V1nCL4M-BAMbHX0Wupf
 // Clients until you decide otherwise).
 const SUPABASE_URL      = 'https://ivetvywbdewkkqbazjxu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2ZXR2eXdiZGV3a2txYmF6anh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQ2NzcsImV4cCI6MjEwNDE1MDY3N30.1lFi27ywZ1iVAU7NykMKY_Lie3krA58rBFXICXZstgo';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession: false }
-});
+
+let supabaseClient = null;
+if (window.supabase && typeof window.supabase.createClient === 'function') {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false }
+  });
+} else {
+  console.error('Supabase library failed to load — check the CDN <script> tag and network access. FN Clients form will still work via GAS; only master-data loading and the shadow write are affected.');
+}
 
 // ── STATE ─────────────────────────────────────────────────────
 let empData     = [];
@@ -576,6 +582,8 @@ async function loadMasterData() {
   const sel = document.getElementById('tlSelect');
   sel.innerHTML = '<option value="">⏳ Loading…</option>';
 
+  if (!supabaseClient) { sel.innerHTML = '<option value="">❌ Load failed — refresh</option>'; return; }
+
   try {
     const [{ data: profiles, error: profErr }, { data: staff, error: staffErr }, { data: projects, error: projErr }] = await Promise.all([
       supabaseClient.from('profiles').select('full_name, team_lead, cluster, pnl_head'),
@@ -586,7 +594,13 @@ async function loadMasterData() {
 
     const allEmployees = [...(profiles || []), ...(staff || [])];
     empData  = allEmployees.map(e => ({ name: e.full_name, teamLead: e.team_lead, cluster: e.cluster, pnlHead: e.pnl_head }));
-    projData = (projects || []).map(p => ({ projectName: p.project_name, developerName: p.developer_name }));
+
+    // Map database column names (snake_case) to JavaScript properties (camelCase)
+    projData = (projects || []).map(p => ({ 
+      projectName: p.project_name, 
+      developerName: p.developer_name 
+    }));
+
     populateTLDropdown();
 
     // Apply prefill AFTER data loads
@@ -1021,6 +1035,7 @@ function mark(id, ok, errId) {
 // you decide to cut over — this is purely a shadow copy for the
 // eventual migration.
 function shadowWriteToSupabase(entries) {
+  if (!supabaseClient) { console.error('Supabase shadow-write skipped: client not initialized.'); return; }
   const rows = entries.map(e => ({
     cluster:        e.cluster || null,
     pnl_head:       e.pnlHead || null,
