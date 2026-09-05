@@ -1036,27 +1036,31 @@ function mark(id, ok, errId) {
 // eventual migration.
 function shadowWriteToSupabase(entries) {
   if (!supabaseClient) { console.error('Supabase shadow-write skipped: client not initialized.'); return; }
+  
   const rows = entries.map(e => ({
-    cluster:        e.cluster || null,
-    pnl_head:       e.pnlHead || null,
-    team_lead:      e.teamLeaderName || null,
+    cluster:              e.cluster || null,
+    pnl_head:             e.pnlHead || null,
+    manager:              e.manager || null,
+    team_lead:            e.teamLeaderName || null,
     sales_executive_name: e.salesExecutiveName,
-    customer_name:  e.customerName || null,
-    contact_number: e.contactNumber || null,
-    property_type:  e.propertyType || null,
-    configuration:  e.configuration || null,
-    budget:         e.budget || null,
-    project_name:   e.projectName || null,
-    developer_name: e.developerName || null,
-    status:         e.status || null,
+    created_by_name:      e.salesExecutiveName || null,
+    customer_name:        e.customerName || null,
+    contact_number:       e.contactNumber || null,
+    property_type:        e.propertyType || null,
+    configuration:        e.configuration || null,
+    budget:               e.budget || null,
+    project_name:         e.projectName || null,
+    developer_name:       e.developerName || null,
+    status:               e.status || null,
     builder_sourcing_manager_name:    e.builderSourcingManagerName || null,
     builder_sourcing_manager_contact: e.builderSourcingManagerContact || null,
     builder_closing_manager_name:     e.builderClosingManagerName || null,
-    visit_date:     e.visitDate || null,
-    remark:         e.remark || null,
-    operations_remark: e.operationsRemark || null,
+    visit_date:           e.visitDate || null,
+    remark:               e.remark || null,
+    operations_remark:     e.operationsRemark || null,
     converted_from_visit: e.convertedFromVisit === true || e.convertedFromVisit === 'Yes'
   }));
+
   supabaseClient.from('fn_clients').insert(rows)
     .then(({ error }) => { if (error) console.error('Supabase shadow-write (fn_clients) failed:', error.message); })
     .catch(err => console.error('Supabase shadow-write (fn_clients) failed:', err));
