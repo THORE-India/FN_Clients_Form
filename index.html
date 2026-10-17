@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>THORE — FN Clients Form</title>
+<title>THORE PULSE — FN Clients Form</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
@@ -472,7 +472,7 @@
     <div class="logo-block">
       <div>
         <div class="logo-word">THORE <span class="logo-pulse-word">PULSE</span></div>
-        <div class="logo-sub">FN Clients · Final Stage Submission</div>
+        <div class="logo-sub" id="logoSub">FN Clients · Final Stage Submission</div>
       </div>
     </div>
     <div class="header-right">
@@ -488,7 +488,7 @@
 <div class="module-head">
   <div>
     <div class="module-kicker">Client Onboarding</div>
-    <h1>FN Clients Management</h1>
+    <h1 id="moduleTitle">FN Clients Management</h1>
     <div class="module-sub">Final-stage client submission for the sales team</div>
   </div>
   <div class="module-status"><span></span> Live Form</div>
@@ -507,8 +507,22 @@
     <button class="reset-btn" onclick="resetForm()">Submit Another Batch</button>
   </div>
 
+  <!-- Client Type (NEW) -->
+  <div class="section-card" id="typeSection">
+    <div class="section-label">Client Type</div>
+    <div class="field">
+      <label>Choose Client Type <span class="req">*</span></label>
+      <select id="clientType" onchange="onClientTypeChange(this.value)">
+        <option value="">— Choose Client Type —</option>
+        <option value="fn">Update FN Clients</option>
+        <option value="token">Update Token FN Clients</option>
+      </select>
+      <div class="field-err" id="err-clientType">Please choose a client type</div>
+    </div>
+  </div>
+
   <!-- Salesperson Section -->
-  <div class="section-card" id="spSection">
+  <div class="section-card" id="spSection" style="display:none;">
     <div class="section-label">Sales Person Info</div>
     <div class="field">
       <label>Team Leader Name <span class="req">*</span></label>
@@ -541,7 +555,7 @@
 
   <!-- Review Panel -->
   <div id="reviewSection">
-    <div class="review-title">Review Before Submit (<span id="reviewCount">0</span> clients)</div>
+    <div class="review-title">Review Before Submit (<span id="reviewCount">0</span> clients)<span id="reviewDest" style="margin-left:8px;font-weight:600;opacity:.75"></span></div>
     <div id="reviewCards"></div>
   </div>
 
@@ -586,6 +600,11 @@ let projData    = [];
 let clientCount = 0;
 let prefillData = {};
 
+// NEW: 'fn' (existing GAS + Supabase shadow-copy flow) or 'token'
+// (Token FN clients — saved straight into Supabase table fn_token_clients).
+let CLIENT_TYPE = '';
+const TOKEN_TABLE = 'fn_token_clients';
+
 // ── BOOT ──────────────────────────────────────────────────────
 window.onload = function () {
   // Read prefill params from URL
@@ -605,8 +624,36 @@ window.onload = function () {
     };
     document.getElementById('prefillBanner').classList.add('show');
   }
+  // Prefilled links come from "convert to FN" on the dashboard -> always FN Clients.
+  // ?clientType=token (or =fn) lets a link open the form already on the right type.
+  const ctParam = (params.get('clientType') || '').toLowerCase();
+  if (params.get('prefill') === '1') setClientType('fn');
+  else if (ctParam === 'token' || ctParam === 'fn') setClientType(ctParam);
   loadMasterData();
 };
+
+// ── CLIENT TYPE (NEW) ─────────────────────────────────────────
+function setClientType(v) {
+  document.getElementById('clientType').value = v;
+  onClientTypeChange(v);
+}
+function onClientTypeChange(v) {
+  CLIENT_TYPE = v || '';
+  mark('clientType', true, 'err-clientType');
+  updateTypeUI();
+  if (!CLIENT_TYPE) {
+    // Nothing chosen: hide the rest of the form again and drop any entered clients.
+    document.getElementById('tlSelect').value = '';
+    onTLChange('');
+  }
+}
+function updateTypeUI() {
+  const isToken = CLIENT_TYPE === 'token';
+  document.getElementById('spSection').style.display = CLIENT_TYPE ? 'block' : 'none';
+  document.getElementById('moduleTitle').textContent = isToken ? 'Token FN Clients Management' : 'FN Clients Management';
+  document.getElementById('logoSub').textContent     = isToken ? 'Token FN Clients · Final Stage Submission' : 'FN Clients · Final Stage Submission';
+  document.getElementById('reviewDest').textContent  = CLIENT_TYPE ? '→ ' + (isToken ? 'Token FN Clients' : 'FN Clients') : '';
+}
 
 // ── MASTER DATA ───────────────────────────────────────────────
 // Reads employee/project lists straight from Supabase (fast, no JSONP
@@ -1012,6 +1059,9 @@ function updateReview() {
 // ── VALIDATION ────────────────────────────────────────────────
 function validateAll() {
   let valid = true;
+  const ct  = document.getElementById('clientType').value;
+  mark('clientType', !!ct, 'err-clientType');
+  if (!ct) valid = false;
   const tl  = document.getElementById('tlSelect').value;
   mark('tlSelect', !!tl, 'err-tl');
   if (!tl) valid = false;
@@ -1065,16 +1115,9 @@ function mark(id, ok, errId) {
   if (er) er.classList.toggle('show', !ok);
 }
 
-// ── NEW: parallel Supabase write ────────────────────────────────
-// Fire-and-forget: never awaited by the GAS submit flow below, never
-// shown to the user, and any failure here is only logged to the
-// console. GAS remains the sole source of truth for FN Clients until
-// you decide to cut over — this is purely a shadow copy for the
-// eventual migration.
-function shadowWriteToSupabase(entries) {
-  if (!supabaseClient) { console.error('Supabase shadow-write skipped: client not initialized.'); return; }
-  
-  const rows = entries.map(e => ({
+// Maps one form entry to a row of fn_clients / fn_token_clients (identical columns).
+function entryToRow(e) {
+  return {
     cluster:              e.cluster || null,
     pnl_head:             e.pnlHead || null,
     manager:              e.manager || null,
@@ -1095,7 +1138,19 @@ function shadowWriteToSupabase(entries) {
     remark:               e.remark || null,
     operations_remark:     e.operationsRemark || null,
     converted_from_visit: e.convertedFromVisit === true || e.convertedFromVisit === 'Yes'
-  }));
+  };
+}
+
+// ── NEW: parallel Supabase write ────────────────────────────────
+// Fire-and-forget: never awaited by the GAS submit flow below, never
+// shown to the user, and any failure here is only logged to the
+// console. GAS remains the sole source of truth for FN Clients until
+// you decide to cut over — this is purely a shadow copy for the
+// eventual migration.
+function shadowWriteToSupabase(entries) {
+  if (!supabaseClient) { console.error('Supabase shadow-write skipped: client not initialized.'); return; }
+  
+  const rows = entries.map(entryToRow);
 
   supabaseClient.from('fn_clients').insert(rows)
     .then(({ error }) => { if (error) console.error('Supabase shadow-write (fn_clients) failed:', error.message); })
@@ -1145,6 +1200,10 @@ function submitAll() {
     convertedFromVisit: prefillData.convertedFromVisit === 'Yes'
   }));
 
+  // NEW: Token FN clients never touch GAS — Supabase is their only store,
+  // so this write is awaited and its errors are shown to the user.
+  if (CLIENT_TYPE === 'token') { submitTokenClients(entries, tl); return; }
+
   // NEW: kick off the Supabase shadow-write in parallel — does not block,
   // does not gate success/failure of the GAS submission below in any way.
   shadowWriteToSupabase(entries);
@@ -1159,6 +1218,7 @@ function submitAll() {
     if (confirmed) {
       document.getElementById('successSub').textContent = `${entries.length} client(s) submitted by TL: ${tl}`;
       document.getElementById('successBanner').classList.add('show');
+      document.getElementById('typeSection').style.display  = 'none';
       document.getElementById('spSection').style.display    = 'none';
       document.getElementById('clientsSection').style.display = 'none';
       document.getElementById('reviewSection').classList.remove('show');
@@ -1174,6 +1234,36 @@ function submitAll() {
     spinner.style.display = 'none';
     label.textContent     = 'Submit All Entries';
   });
+}
+
+// ── TOKEN FN SUBMIT (NEW) ──────────────────────────────────────
+async function submitTokenClients(entries, tl) {
+  const btn     = document.getElementById('submitBtn');
+  const spinner = document.getElementById('spinner');
+  const label   = document.getElementById('submitLabel');
+  const fail = msg => {
+    toast(msg, 'error');
+    btn.disabled          = false;
+    spinner.style.display = 'none';
+    label.textContent     = 'Submit All Entries';
+  };
+  if (!supabaseClient) { fail('Could not reach the database — refresh the page and try again.'); return; }
+  try {
+    // One INSERT statement = all-or-nothing, so a failed submit can be retried safely.
+    const { error } = await supabaseClient.from(TOKEN_TABLE).insert(entries.map(entryToRow));
+    if (error) throw new Error(error.message);
+    document.getElementById('successSub').textContent = `${entries.length} Token FN client(s) submitted by TL: ${tl}`;
+    document.getElementById('successBanner').classList.add('show');
+    document.getElementById('typeSection').style.display    = 'none';
+    document.getElementById('spSection').style.display      = 'none';
+    document.getElementById('clientsSection').style.display = 'none';
+    document.getElementById('reviewSection').classList.remove('show');
+    btn.style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (err) {
+    console.error('Token FN submit failed:', err);
+    fail('Token FN submission failed: ' + (err.message || 'Unknown error'));
+  }
 }
 
 // ── POLL FOR CONFIRMATION ──────────────────────────────────────
@@ -1198,7 +1288,10 @@ function resetForm() {
   btn.style.display = 'none';
 
   document.getElementById('successBanner').classList.remove('show');
-  document.getElementById('spSection').style.display    = 'block';
+  document.getElementById('typeSection').style.display  = 'block';
+  document.getElementById('clientType').value           = '';
+  CLIENT_TYPE = '';
+  updateTypeUI();   // also hides the Sales Person section until a type is chosen
   document.getElementById('tlSelect').value             = '';
   document.getElementById('cluster').value              = '';
   document.getElementById('pnlHead').value              = '';
